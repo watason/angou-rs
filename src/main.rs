@@ -4,7 +4,7 @@ mod cipher;
 use gf::GF256;
 use domain::value_object::aes_gf::aesGF;
 use domain::value_object::aes_type;
-
+use cipher::*;
 
 // impl Cipher{
 //     fn make_sbox(self)-> [u8;256]{
@@ -26,22 +26,24 @@ use domain::value_object::aes_type;
     
 // }
 fn main() {
-    let v : i32 = 32;
-    println!("Hello, world! {}",v);
+    let mut input : [u8;16] = [0;16];
 
-
-    // for (index,item) in sbox.iter().enumerate(){
-    //     inv[sbox[index as usize] as usize ] = index as u8;
-    // }
-
-    // for (index,item) in inv.iter().enumerate(){
-    //    if index%16 ==0 {
-    //     println!("");
- 
-    //   } 
-    //     print!("{:x} ,",item)
-    // }
-
+    for i in 0..16 {
+        input[i/4 + 4*(i%4)] = i as u8;
+    }
+    let mut input2 = input.clone();
+    println!("{:?}",input); 
+    let input = cipher::shift_row(input, false);
+    
+    println!(" after shift row {:?}",input);
+    let input = cipher::shift_row(input, true);
+    
+    println!(" after inv shift row {:?}",input); 
+    let input = cipher::sub_bytes(input, false);
+    println!("after subbyte {:?}",input); 
+    let input  = cipher::sub_bytes(input, true);
+    println!("after invsubbyte {:?}",input);
+    
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};
     let c = aesGF{value: 0xd4};
