@@ -53,7 +53,6 @@ fn main() {
     input_gf[4]=aesGF{value:0xbf};
     input_gf[8]=aesGF{value:0x5d};
     input_gf[12]=aesGF{value:0x30};
-    
     let input = cipher::mix_column(input_gf, false);
     
     
@@ -62,8 +61,18 @@ fn main() {
     println!("after mixculum {}",input[8]);
     println!("after mixculum {}",input[12]);
     
+
     println!("after mixculum {:?}",input);
     
+    let input = cipher::mix_column(input, true);
+    println!("after invmixculum {}",input[0]);
+    println!("after invmixculum {}",input[4]);    
+    println!("after mixculum {}",input[8]);
+    println!("after mixculum {}",input[12]);
+    
+
+    println!("after inv mixculum {:?}",input);
+
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};
     let c = aesGF{value: 0xd4};

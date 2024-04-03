@@ -122,11 +122,10 @@ pub fn mix_column(blocks: [aesGF;16],inverse : bool)->[aesGF;16]{
         ret[i +12] = aesGF{value :3}*blocks[i] +   blocks[4+i] +   blocks[8+i] + aesGF{value : 2}*blocks[12+i];
         }else{
 
-        ret[0] = aesGF{value : 0x0e}* blocks[0] + aesGF{value :0x0b}* blocks[1] + aesGF{value :0x0d}* blocks[2] + aesGF{value :0x09}* blocks[3];
-        // ret[1] = gmult(0x09, s[0]) ^ gmult(0x0e, s[1]) ^ gmult(0x0b, s[2]) ^ gmult(0x0d, s[3]);
-        // ret[2] = gmult(0x0d, s[0]) ^ gmult(0x09, s[1]) ^ gmult(0x0e, s[2]) ^ gmult(0x0b, s[3]);
-        // ret[3] = gmult(0x0b, s[0]) ^ gmult(0x0d, s[1]) ^ gmult(0x09, s[2]) ^ gmult(0x0e, s[3]);
-        // 
+        ret[i] = aesGF{value : 0x0e}* blocks[i] + aesGF{value :0x0b}* blocks[i +4] + aesGF{value :0x0d}* blocks[i + 8] + aesGF{value :0x09}* blocks[i + 12];
+        ret[i + 4] = aesGF{value :0x09}* blocks[i] + aesGF{value : 0x0e}* blocks[i+4] +aesGF{value :0x0b}* blocks[i +8] + aesGF{value :0x0d}* blocks[i + 12];
+        ret[i + 8] = aesGF{value :0x0d}* blocks[i] + aesGF{value :0x09}* blocks[i+4] +  aesGF{value : 0x0e}* blocks[i + 8] + aesGF{value :0x0b}* blocks[i +12];
+        ret[i + 12] =aesGF{value :0x0b}* blocks[i] +aesGF{value :0x0d}* blocks[i +4] + aesGF{value :0x09}* blocks[i + 8] +  aesGF{value : 0x0e}* blocks[i+12]; 
         }
     }
     ret
