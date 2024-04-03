@@ -26,6 +26,9 @@ use cipher::*;
     
 // }
 fn main() {
+
+    let type_nk_nr = aes_type::aes_tuple(0);
+
     let mut input : [u8;16] = [0;16];
 
     for i in 0..16 {
@@ -43,6 +46,23 @@ fn main() {
     println!("after subbyte {:?}",input); 
     let input  = cipher::sub_bytes(input, true);
     println!("after invsubbyte {:?}",input);
+    
+
+    let mut input_gf : [aesGF;16] = [aesGF::default();16];
+    input_gf[0]=aesGF{value:0xd4};
+    input_gf[4]=aesGF{value:0xbf};
+    input_gf[8]=aesGF{value:0x5d};
+    input_gf[12]=aesGF{value:0x30};
+    
+    let input = cipher::mix_column(input_gf, false);
+    
+    
+    println!("after mixculum {}",input[0]);
+    println!("after mixculum {}",input[4]);    
+    println!("after mixculum {}",input[8]);
+    println!("after mixculum {}",input[12]);
+    
+    println!("after mixculum {:?}",input);
     
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};

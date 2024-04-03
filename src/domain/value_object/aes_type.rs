@@ -10,7 +10,7 @@ pub enum Type {
 #[derive(Default,Debug,Copy,Clone)]
 pub struct aes_type(Type,u8,u8);
 
-pub fn type_tuple(num : u8)-> Result<(Type,u8,u8),String>{
+pub fn aes_tuple(num : u8)-> Result<(Type,u8,u8),String>{
     match num {
         0 => Ok((Type::aes128,4,10)),
         1 => Ok((Type::aes192,6,12)),
