@@ -131,6 +131,15 @@ pub fn mix_column(blocks: [aesGF;16],inverse : bool)->[aesGF;16]{
     ret
 }
 
-pub fn add_round_key(blocks: [u8;16],inverse : bool)->[u8;16]{
-    blocks
+pub fn add_round_key(blocks: [aesGF;16],key : &[u8],inverse : bool)->[aesGF;16]{
+    let mut ret = blocks;
+    for i in 0..4{
+        for j in 0..4{
+            ret[4*i +j] = blocks[4*i +j] + aesGF{value : key[i]};
+        }
+    }
+    ret
+}
+pub fn key_expansion(keys : Vec<u8>,nk : &u8,nr : &u8){
+
 }

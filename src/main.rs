@@ -27,8 +27,9 @@ use cipher::*;
 // }
 fn main() {
 
-    let type_nk_nr = aes_type::aes_tuple(0);
+    let (aes_type,nk,nr) = aes_type::aes_tuple(0).unwrap();
 
+    let key :[u8;32] = [1;32];
     let mut input : [u8;16] = [0;16];
 
     for i in 0..16 {
@@ -72,6 +73,10 @@ fn main() {
     
 
     println!("after inv mixculum {:?}",input);
+
+
+    let input = cipher::add_round_key(input, &key, false);
+    println!("after add round key {:?}",input);
 
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};
