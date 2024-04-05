@@ -1,0 +1,8 @@
+{
+    "workbench.panel.defaultLocation": "right",
+    "rust-analyzer.checkOnSave": false,
+    "rust-analyzer.linkedProjects": [
+        "./Cargo.toml",
+        "./Cargo.toml"
+    ]
+}
