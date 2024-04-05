@@ -27,6 +27,15 @@ use cipher::*;
 // }
 fn main() {
 
+    let mut rcon : [aesGF;11] = [aesGF::default();11];
+    rcon[1] = aesGF{value : 1};
+    for i in 1..10{
+        rcon[i+1] = rcon[i] * aesGF{value : 2}; 
+    }
+    let mut rcon = rcon.map(|x|x.value);
+    for item in rcon.iter(){
+        println!("rcon is {:x}",item);
+    }
     let (aes_type,nk,nr) = aes_type::aes_tuple(0).unwrap();
 
     let key :[u8;32] = [1;32];
@@ -78,6 +87,17 @@ fn main() {
     let input = cipher::add_round_key(input, &key, false);
     println!("after add round key {:?}",input);
 
+    let mut key128 : [u8;16] = [0;16];
+    for (i,item) in key128.iter_mut().enumerate(){
+        *item = i as u8;
+    }
+    let mut key128 = cipher::shift_word(&mut key128);
+    println!("after shift word key128 is {:?}",key128);
+    let mut key128 = cipher::sub_word(& mut key128);
+    println!("after sub word key128 is {:x?}",key128);
+  
+    // let keys = cipher::key_expansion(&key128, nk, nr, &rcon);
+    // println!("{:?}",key);
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};
     let c = aesGF{value: 0xd4};
