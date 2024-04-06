@@ -131,11 +131,14 @@ pub fn mix_column(blocks: [aesGF;16],inverse : bool)->[aesGF;16]{
     ret
 }
 
-pub fn add_round_key(blocks: [aesGF;16],key : &[u8],inverse : bool)->[aesGF;16]{
+pub fn add_round_key(blocks: [u8;16],key : [u32;4],inverse : bool)->[u8;16]{
     let mut ret = blocks;
     for i in 0..4{
+        let key = key[i].to_be_bytes();
+        println!("round key is : {}", key.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         for j in 0..4{
-            ret[4*i +j] = blocks[4*i +j] + aesGF{value : key[i]};
+            println!("round block {:x} , key {:x}",blocks[4*i +j],key[j]);
+            ret[4*i +j] = blocks[4*i +j] ^ key[j];
         }
     }
     ret
@@ -216,7 +219,8 @@ pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
 
 pub fn cipher(input :&[u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
     let mut ret : [u8;16] = [0;16];
-    
+
+    ret
 }
 
 // pub fn key_expansion(keys : &[u8],nk : u8,nr : u8,rcon : &[u8])->Box<[u8]>{
