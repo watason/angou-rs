@@ -87,15 +87,17 @@ pub fn shift_row(blocks : [u8;16],inverse : bool) -> [u8;16]{
      03 07 11 15 => 07 11 15 03
 
      */
-    let mut blocks = blocks;
+    let mut ret = [0;16];
     for i in 0..4 {
-        let index = 4*i; 
-        println!("{}",index);
-        let mut sep = &mut blocks[(index)..(index+4)];
-        sep.rotate_left(if !inverse {i}else{4-i});
-        println!("{:?}",sep);
+        for j in 0..4{
+            let slide = if inverse{
+                (i+j)%4
+            }else{ (i+4-j)%4};
+            ret[4*slide +j] = blocks[4*i+j];
+        }
+        println!("{:?}",ret);
     }
-    blocks
+    ret
 }
 
 

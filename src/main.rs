@@ -42,12 +42,15 @@ fn main() {
     let mut input : [u8;16] = [0;16];
 
     for i in 0..16 {
-        input[i/4 + 4*(i%4)] = i as u8;
+        input[i] = i as u8;
     }
     let mut input2 = input.clone();
     println!("{:?}",input); 
     let input = cipher::shift_row(input, false);
-    
+    for (index,item) in input.iter().enumerate(){
+        if index%4 == 0 && index != 0 {println!();}
+        print!("{:>02},",item);
+    }
     println!(" after shift row {:?}",input);
     let input = cipher::shift_row(input, true);
     
@@ -89,6 +92,10 @@ fn main() {
     println!("after add round key {:?}",input);
     
     println!("Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+    let input = cipher::sub_bytes(input,false);
+    println!("after subbyte Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
 
     let mut key128 : [u8;16] = [0;16];
     for (i,item) in key128.iter_mut().enumerate(){
