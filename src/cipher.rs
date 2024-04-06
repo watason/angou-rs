@@ -153,26 +153,65 @@ pub fn sub_word(word : &mut [u8])->&mut[u8]{
     }
     word
 }
-pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->[u8;4]{
+pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
     println!("{:x}",key[0]);
-    let shift_word = |x : u32|x<<24 | x >> 8;
+    let shift_word = |x : u32|x<<8 | x >> 24;
     let sub_word = |x:u32|{
+        let connect = |x : [u8;4]|{
+                ((x[0] as u32) << 24) +
+                ((x[1] as u32) << 16) +
+                ((x[2] as u32) <<  8) +
+                ((x[3] as u32) <<  0)
+        };
         let (sbox,_) = make_sbox();
         let mut vec_u8 = x.to_be_bytes();
         let s = vec_u8.map(|x|sbox[x as usize]);
-        s
+        connect(s)
     };
-    let key = shift_word(key[0]);
-    println!("{:x}",key);
-    let key = sub_word(key);
-    println!("{:?}",key);
-    key
-
-    // let round = nr as usize +1;
-    // let round_key : Vec<u32>  = Vec::new();
-    // for i in 0..round{
-    // }
-
+    // let key = shift_word(key[0]);
+    // println!("{:x}",key);
+    // let key = sub_word(key);
+    // println!("{:?}",key);
+    // key;
+    let rcon : [u32;11] = [
+        0x00000000, /* invalid */
+        0x01000000, /* x^0 */
+        0x02000000, /* x^1 */
+        0x04000000, /* x^2 */
+        0x08000000, /* x^3 */
+        0x10000000, /* x^4 */
+        0x20000000, /* x^5 */
+        0x40000000, /* x^6 */
+        0x80000000, /* x^7 */
+        0x1B000000, /* x^4 + x^3 + x^1 + x^0 */
+        0x36000000, /* x^5 + x^4 + x^2 + x^1 */
+    ];
+    let round = (nr as usize +1)*4;
+    let key_length = nk as usize;
+    let mut round_key : Vec<u32>  = Vec::new();
+    round_key.extend(key.clone());
+    for i in key_length..round{
+        println!("round {}",i);
+        let mut word : u32 = round_key[i-1];
+        println!("word {:x}",word);
+        if i%key_length == 0 {
+            word = shift_word(word);
+            println!("shif word {:x}",word);
+            word = sub_word(word);
+            println!("sub word {:x}",word);
+            println!("rcon {:x}",rcon[i/key_length]);
+            word = word ^ rcon[i/key_length];
+            println!("rcon xor {:x}",word);
+        }else if 6<nk && i%key_length == 4{
+            word = sub_word(word);
+        }
+        let pre_word = round_key[i-key_length].clone();
+        println!("pre word {:x}",pre_word);
+        word = word ^ pre_word;
+        println!("pre xor {:x}",word);
+        round_key.push(word);
+    }
+    round_key
 }
 // pub fn key_expansion(keys : &[u8],nk : u8,nr : u8,rcon : &[u8])->Box<[u8]>{
 //     let round_count = ((nr as usize) + 1) * 16;
