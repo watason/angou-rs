@@ -96,8 +96,19 @@ fn main() {
     let mut key128 = cipher::sub_word(& mut key128);
     println!("after sub word key128 is {:x?}",key128);
   
+    let test1 : u32 = 0x12345678;
+    let test2 = test1 << 24 | test1 >>8;
+    println!("32 bit shift {:x}",test2);
+    let test3 = test2.to_be_bytes();
+    for t in test3{println!("{:x}",t);}
     // let keys = cipher::key_expansion(&key128, nk, nr, &rcon);
     // println!("{:?}",key);
+
+
+    let key : Vec<u32> = vec![0x12345678];
+    let key_e = cipher::key_exp(key.clone(), nk, nr);
+    println!("Result: {}", key_e.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    println!("{:?}",key);
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};
     let c = aesGF{value: 0xd4};

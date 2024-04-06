@@ -153,7 +153,27 @@ pub fn sub_word(word : &mut [u8])->&mut[u8]{
     }
     word
 }
+pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->[u8;4]{
+    println!("{:x}",key[0]);
+    let shift_word = |x : u32|x<<24 | x >> 8;
+    let sub_word = |x:u32|{
+        let (sbox,_) = make_sbox();
+        let mut vec_u8 = x.to_be_bytes();
+        let s = vec_u8.map(|x|sbox[x as usize]);
+        s
+    };
+    let key = shift_word(key[0]);
+    println!("{:x}",key);
+    let key = sub_word(key);
+    println!("{:?}",key);
+    key
 
+    // let round = nr as usize +1;
+    // let round_key : Vec<u32>  = Vec::new();
+    // for i in 0..round{
+    // }
+
+}
 // pub fn key_expansion(keys : &[u8],nk : u8,nr : u8,rcon : &[u8])->Box<[u8]>{
 //     let round_count = ((nr as usize) + 1) * 16;
 //     let word :usize = 16;
