@@ -213,6 +213,12 @@ pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
     }
     round_key
 }
+
+pub fn cipher(input :&[u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
+    let mut ret : [u8;16] = [0;16];
+    
+}
+
 // pub fn key_expansion(keys : &[u8],nk : u8,nr : u8,rcon : &[u8])->Box<[u8]>{
 //     let round_count = ((nr as usize) + 1) * 16;
 //     let word :usize = 16;

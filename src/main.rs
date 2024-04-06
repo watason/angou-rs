@@ -120,6 +120,12 @@ fn main() {
     //println!("Result: {}", key256_ex.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     //println!("{:?}",key256_ex.len());
 
+
+
+    let test_input :[u8;16]= [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
+    let cipher_key :[u32;4]=[0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+ 
+    
     let a : aesGF = aesGF{value : 2};
     let b  = aesGF{value : 2};
     let c = aesGF{value: 0xd4};
