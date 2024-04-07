@@ -86,7 +86,7 @@ fn main() {
     let add_cipher_key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
     let key_expand = cipher::key_exp(add_cipher_key, nk, nr);
     for item in key_expand.iter().enumerate(){
-        println!("key exp round {} is {} ",item.0,item.1);
+        println!("key exp round {} is {:x} ",item.0,item.1);
     }
     let input = cipher::add_round_key(input_add_round_key, key_expand[0..4].to_vec(), false);
     println!("after add round key0  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
@@ -105,6 +105,15 @@ fn main() {
     let input = cipher::add_round_key(input, key_expand[4..8].to_vec(), false);
     println!("after add round key1  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
+
+
+    let input : [u8;16] =  [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
+    let init_key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+    let key = cipher::key_exp(init_key, nk, nr);
+    //println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    
+    let input = cipher::cipher(input, key, false);
+    println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
 
 
