@@ -72,7 +72,7 @@ pub(crate) fn make_sbox() -> ([u8;256],[u8;256]){
     (ret_sbox,ret_inv_sbox)
 }
 
-pub fn shift_row(blocks : [u8;16],inverse : bool) -> [u8;16]{
+pub fn shift_row(blocks : Vec<u8>,inverse : bool) -> Vec<u8>{
     /*
     forward
      00 04 08 12 => 00 04 08 12
@@ -87,7 +87,7 @@ pub fn shift_row(blocks : [u8;16],inverse : bool) -> [u8;16]{
      03 07 11 15 => 07 11 15 03
 
      */
-    let mut ret = [0;16];
+    let mut ret = vec![0;16];
     for i in 0..4 {
         for j in 0..4{
             let slide = if inverse{
@@ -101,7 +101,7 @@ pub fn shift_row(blocks : [u8;16],inverse : bool) -> [u8;16]{
 }
 
 
-pub fn sub_bytes(blocks : [u8;16],inverse : bool) ->[u8;16]{
+pub fn sub_bytes(blocks : Vec<u8>,inverse : bool) ->Vec<u8>{
     let (sbox,inv_sbox) = make_sbox();
     let mut ret = blocks;
     for mut item in ret.iter_mut(){
@@ -114,8 +114,8 @@ pub fn sub_bytes(blocks : [u8;16],inverse : bool) ->[u8;16]{
     ret
 }
 
-pub fn mix_column(blocks: [u8;16],inverse : bool)->[u8;16]{
-    let blocks = blocks.map(|x|aesGF{value:x});
+pub fn mix_column(blocks: Vec<u8>,inverse : bool)->Vec<u8>{
+    let blocks = blocks.into_iter().map(|x|aesGF{value:x}).collect::<Vec<aesGF>>();
     let mut ret :[aesGF;16] = [aesGF::default();16];
     for i in 0..4{
         let i = i *4;
@@ -132,12 +132,12 @@ pub fn mix_column(blocks: [u8;16],inverse : bool)->[u8;16]{
         ret[i+3] =aesGF{value :0x0b}* blocks[i] +aesGF{value :0x0d}* blocks[i+1] + aesGF{value :0x09}* blocks[i+2] +  aesGF{value : 0x0e}* blocks[i+3]; 
         }
     }
-    let ret = ret.map(|x|{x.value});
+    let ret = ret.map(|x|{x.value}).to_vec();
     ret
 }
 
-pub fn add_round_key(blocks: [u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
-    let mut ret = blocks;
+pub fn add_round_key(blocks: Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
+    let mut ret = blocks.clone();
     for i in 0..4{
         let key = key[i].to_be_bytes();
         //println!("round key is : {}", key.iter().map(|x| format!("{:02X}", x)).collect::<String>());
@@ -221,8 +221,8 @@ pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
     round_key
 }
 
-pub fn cipher(block :[u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
-    let mut block : [u8;16] = block;
+pub fn cipher(block :Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
+    let mut block : Vec<u8> = block;
     let nr = 10;
     
     if !inverse {

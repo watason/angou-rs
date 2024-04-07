@@ -39,7 +39,7 @@ fn main() {
     let (aes_type,nk,nr) = aes_type::aes_tuple(0).unwrap();
 
     let key :[u8;32] = [1;32];
-    let mut input : [u8;16] = [0;16];
+    let mut input  = vec![0;16];
 
     for i in 0..16 {
         input[i] = i as u8;
@@ -82,7 +82,7 @@ fn main() {
         print!("{:>02},",item);
     }
 
-    let input_add_round_key : [u8;16] =  [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
+    let input_add_round_key  =  vec![0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
     let add_cipher_key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
     let key_expand = cipher::key_exp(add_cipher_key, nk, nr);
     for item in key_expand.iter().enumerate(){
@@ -107,7 +107,7 @@ fn main() {
 
 
 
-    let input : [u8;16] =  [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
+    let input = vec![0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
     let init_key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
     let key = cipher::key_exp(init_key, nk, nr);
     //println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
@@ -115,10 +115,16 @@ fn main() {
     let input = cipher::cipher(input, key.clone(), false);
     println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
-    let input = cipher::cipher(input, key, true);
+    let input = cipher::cipher(input, key.clone(), true);
     println!("after inv cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
 
+    let s = "hello worldaaaaa".as_bytes().to_vec();
+    println!("hello world byte is {:?}",s);
+    let input = cipher::cipher(s, key.clone(), false);
+    let input = cipher::cipher(input, key.clone(), true);
+    let str = std::str::from_utf8(&input).unwrap();
+    println!("text is {}",str);
 
     let mut key128 : [u8;16] = [0;16];
     for (i,item) in key128.iter_mut().enumerate(){
