@@ -229,43 +229,53 @@ pub fn cipher(block :Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
     block = add_round_key(block,key[0..4].to_vec(), inverse);
     for i in 1..nr{
         block = sub_bytes(block, inverse);
-        println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = shift_row(block, inverse);
-        println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = mix_column(block, inverse);
-        println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = add_round_key(block, key[4*i..4*(i+1)].to_vec(), inverse);
-        println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     }
     block = sub_bytes(block, inverse);
-    println!("after subbyte final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    //println!("after subbyte final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     block = shift_row(block, inverse);
-    println!("after shift row final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-    println!("after use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
+    //println!("after shift row final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    //println!("after use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
     block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
     }else{
         block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
         for i in (1..nr).rev(){
             block = shift_row(block, inverse);
-            println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            //println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
             block = sub_bytes(block, inverse);
-            println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            //println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
             block = add_round_key(block, key[4*i..4*(i+1)].to_vec(), inverse);
-            println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            //println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
             block = mix_column(block, inverse);
-            println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            //println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         }
         
         block = shift_row(block, inverse);
-        println!("after shift row Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after shift row Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = sub_bytes(block, inverse);
-        println!("after subbyte Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after subbyte Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = add_round_key(block, key[0..4].to_vec(), inverse);
-        println!("after add round key  Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("after add round key  Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     }
     block
 }
 
+pub fn padding_pkcs_7(input : Vec<u8>)->Vec<u8>{
+    let block_byte = (input.len()/16 + 1)*16;
+    let value = (block_byte - input.len()) as u8;
+    let mut ret = input.clone();
+    for i in 0..value{
+        ret.push(value);
+    }
+    println!("padding size {}",ret.len());
+    ret
+}
 // pub fn key_expansion(keys : &[u8],nk : u8,nr : u8,rcon : &[u8])->Box<[u8]>{
 //     let round_count = ((nr as usize) + 1) * 16;
 //     let word :usize = 16;

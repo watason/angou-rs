@@ -109,6 +109,8 @@ fn main() {
 
     let input = vec![0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
     let init_key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+    let key_str = init_key.clone().into_iter().map(|x|x.to_string()).collect::<String>();
+    println!("key str is {}",key_str);
     let key = cipher::key_exp(init_key, nk, nr);
     //println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     
@@ -122,9 +124,17 @@ fn main() {
     let s = "hello worldaaaaa".as_bytes().to_vec();
     println!("hello world byte is {:?}",s);
     let input = cipher::cipher(s, key.clone(), false);
+    println!("after hello cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     let input = cipher::cipher(input, key.clone(), true);
     let str = std::str::from_utf8(&input).unwrap();
     println!("text is {}",str);
+
+
+    let ss  ="hello world".as_bytes().to_vec();
+    let ss = cipher::padding_pkcs_7(ss);    
+    //let ss = std::str::from_utf8(&ss).unwrap();
+    println!("paddiing text is {:?}",ss);
+
 
     let mut key128 : [u8;16] = [0;16];
     for (i,item) in key128.iter_mut().enumerate(){
