@@ -112,8 +112,11 @@ fn main() {
     let key = cipher::key_exp(init_key, nk, nr);
     //println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     
-    let input = cipher::cipher(input, key, false);
+    let input = cipher::cipher(input, key.clone(), false);
     println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+    let input = cipher::cipher(input, key, true);
+    println!("after inv cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
 
 

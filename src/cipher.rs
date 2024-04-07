@@ -225,6 +225,7 @@ pub fn cipher(block :[u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
     let mut block : [u8;16] = block;
     let nr = 10;
     
+    if !inverse {
     block = add_round_key(block,key[0..4].to_vec(), inverse);
     for i in 1..nr{
         block = sub_bytes(block, inverse);
@@ -242,7 +243,26 @@ pub fn cipher(block :[u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
     println!("after shift row final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     println!("after use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
     block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
-
+    }else{
+        block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
+        for i in (1..nr).rev(){
+            block = shift_row(block, inverse);
+            println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = sub_bytes(block, inverse);
+            println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = add_round_key(block, key[4*i..4*(i+1)].to_vec(), inverse);
+            println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = mix_column(block, inverse);
+            println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        }
+        
+        block = shift_row(block, inverse);
+        println!("after shift row Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        block = sub_bytes(block, inverse);
+        println!("after subbyte Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        block = add_round_key(block, key[0..4].to_vec(), inverse);
+        println!("after add round key  Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    }
     block
 }
 
