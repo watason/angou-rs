@@ -51,50 +51,61 @@ fn main() {
         if index%4 == 0 && index != 0 {println!();}
         print!("{:>02},",item);
     }
-    println!(" after shift row {:?}",input);
-    let input = cipher::shift_row(input, true);
+    // println!(" after shift row {:?}",input);
+    // let input = cipher::shift_row(input, true);
     
     println!(" after inv shift row {:?}",input); 
     let input = cipher::sub_bytes(input, false);
-    println!("after subbyte {:?}",input); 
-    let input  = cipher::sub_bytes(input, true);
-    println!("after invsubbyte {:?}",input);
-    
+    println!("after subbyte "); 
+    // let input  = cipher::sub_bytes(input, true);
+    // println!("after invsubbyte {:?}",input);
+    for (index,item) in input.iter().enumerate(){
+        if index%4 == 0 && index != 0 {println!();}
+        print!("{:>02x},",item);
+    }
+    println!();
 
-    let mut input_gf : [aesGF;16] = [aesGF::default();16];
-    input_gf[0]=aesGF{value:0xd4};
-    input_gf[4]=aesGF{value:0xbf};
-    input_gf[8]=aesGF{value:0x5d};
-    input_gf[12]=aesGF{value:0x30};
-    let input = cipher::mix_column(input_gf, false);
-    
-    
-    println!("after mixculum {}",input[0]);
-    println!("after mixculum {}",input[4]);    
-    println!("after mixculum {}",input[8]);
-    println!("after mixculum {}",input[12]);
-    
 
-    println!("after mixculum {:?}",input);
+    let input = cipher::mix_column(input, false);
+    
+    
+    println!("after mixculum ");
+    for (index,item) in input.iter().enumerate(){
+        if index%4 == 0 && index != 0 {println!();}
+        print!("{:>02},",item);
+    }
     
     let input = cipher::mix_column(input, true);
-    println!("after invmixculum {}",input[0]);
-    println!("after invmixculum {}",input[4]);    
-    println!("after mixculum {}",input[8]);
-    println!("after mixculum {}",input[12]);
-    
-
-    println!("after inv mixculum {:?}",input);
+    println!("after invmixculum ");
+    for (index,item) in input.iter().enumerate(){
+        if index%4 == 0 && index != 0 {println!();}
+        print!("{:>02},",item);
+    }
 
     let input_add_round_key : [u8;16] =  [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
-    let add_cipher_key :[u32;4]=[0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
-    let input = cipher::add_round_key(input_add_round_key, add_cipher_key, false);
-    println!("after add round key {:?}",input);
+    let add_cipher_key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+    let key_expand = cipher::key_exp(add_cipher_key, nk, nr);
+    for item in key_expand.iter().enumerate(){
+        println!("key exp round {} is {} ",item.0,item.1);
+    }
+    let input = cipher::add_round_key(input_add_round_key, key_expand[0..4].to_vec(), false);
+    println!("after add round key0  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     
     println!("Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
     let input = cipher::sub_bytes(input,false);
     println!("after subbyte Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+    let input = cipher::shift_row(input, false);
+    println!("after shiftrow Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+    let input =cipher::mix_column(input, false);
+    println!("after mixcolumn Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+    let input = cipher::add_round_key(input, key_expand[4..8].to_vec(), false);
+    println!("after add round key1  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+
 
 
     let mut key128 : [u8;16] = [0;16];

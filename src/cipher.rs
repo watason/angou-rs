@@ -114,26 +114,29 @@ pub fn sub_bytes(blocks : [u8;16],inverse : bool) ->[u8;16]{
     ret
 }
 
-pub fn mix_column(blocks: [aesGF;16],inverse : bool)->[aesGF;16]{
+pub fn mix_column(blocks: [u8;16],inverse : bool)->[u8;16]{
+    let blocks = blocks.map(|x|aesGF{value:x});
     let mut ret :[aesGF;16] = [aesGF::default();16];
     for i in 0..4{
+        let i = i *4;
         if !inverse {
-        ret[i] = aesGF{value : 2}*blocks[i] + aesGF{value :3}*blocks[4+i] +   blocks[8+i] + blocks[12+i];
-        ret[i +4] =   blocks[i] + aesGF{value : 2}*blocks[4+i] + aesGF{value :3}*blocks[8+i] + blocks[12+i];
-        ret[i +8] =   blocks[i] +   blocks[4+i] + aesGF{value : 2}*blocks[8+i] + aesGF{value :3}*blocks[12+i];
-        ret[i +12] = aesGF{value :3}*blocks[i] +   blocks[4+i] +   blocks[8+i] + aesGF{value : 2}*blocks[12+i];
+        ret[i] = aesGF{value : 2}*blocks[i] + aesGF{value :3}*blocks[i+1] +   blocks[i+2] + blocks[i+3];
+        ret[i +1] =   blocks[i] + aesGF{value : 2}*blocks[i+1] + aesGF{value :3}*blocks[i+2] + blocks[i+3];
+        ret[i +2] =   blocks[i] +   blocks[i+1] + aesGF{value : 2}*blocks[i+2] + aesGF{value :3}*blocks[i+3];
+        ret[i +3] = aesGF{value :3}*blocks[i] +   blocks[i+1] +   blocks[i+2] + aesGF{value : 2}*blocks[i+3];
         }else{
 
-        ret[i] = aesGF{value : 0x0e}* blocks[i] + aesGF{value :0x0b}* blocks[i +4] + aesGF{value :0x0d}* blocks[i + 8] + aesGF{value :0x09}* blocks[i + 12];
-        ret[i + 4] = aesGF{value :0x09}* blocks[i] + aesGF{value : 0x0e}* blocks[i+4] +aesGF{value :0x0b}* blocks[i +8] + aesGF{value :0x0d}* blocks[i + 12];
-        ret[i + 8] = aesGF{value :0x0d}* blocks[i] + aesGF{value :0x09}* blocks[i+4] +  aesGF{value : 0x0e}* blocks[i + 8] + aesGF{value :0x0b}* blocks[i +12];
-        ret[i + 12] =aesGF{value :0x0b}* blocks[i] +aesGF{value :0x0d}* blocks[i +4] + aesGF{value :0x09}* blocks[i + 8] +  aesGF{value : 0x0e}* blocks[i+12]; 
+        ret[i] = aesGF{value : 0x0e}* blocks[i] + aesGF{value :0x0b}* blocks[i+1] + aesGF{value :0x0d}* blocks[i+2] + aesGF{value :0x09}* blocks[i+3];
+        ret[i+1] = aesGF{value :0x09}* blocks[i] + aesGF{value : 0x0e}* blocks[i+1] +aesGF{value :0x0b}* blocks[i+2] + aesGF{value :0x0d}* blocks[i+3];
+        ret[i+2] = aesGF{value :0x0d}* blocks[i] + aesGF{value :0x09}* blocks[i+1] +  aesGF{value : 0x0e}* blocks[i+2] + aesGF{value :0x0b}* blocks[i+3];
+        ret[i+3] =aesGF{value :0x0b}* blocks[i] +aesGF{value :0x0d}* blocks[i+1] + aesGF{value :0x09}* blocks[i+2] +  aesGF{value : 0x0e}* blocks[i+3]; 
         }
     }
+    let ret = ret.map(|x|{x.value});
     ret
 }
 
-pub fn add_round_key(blocks: [u8;16],key : [u32;4],inverse : bool)->[u8;16]{
+pub fn add_round_key(blocks: [u8;16],key : Vec<u32>,inverse : bool)->[u8;16]{
     let mut ret = blocks;
     for i in 0..4{
         let key = key[i].to_be_bytes();
@@ -159,7 +162,6 @@ pub fn sub_word(word : &mut [u8])->&mut[u8]{
     word
 }
 pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
-    println!("{:x}",key[0]);
     let shift_word = |x : u32|x<<8 | x >> 24;
     let sub_word = |x:u32|{
         let connect = |x : [u8;4]|{
@@ -196,24 +198,24 @@ pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
     let mut round_key : Vec<u32>  = Vec::new();
     round_key.extend(key.clone());
     for i in key_length..round{
-        println!("round {}",i);
+        //println!("round {}",i);
         let mut word : u32 = round_key[i-1];
-        println!("word {:x}",word);
+        //println!("word {:x}",word);
         if i%key_length == 0 {
             word = shift_word(word);
-            println!("shif word {:x}",word);
+            //println!("shif word {:x}",word);
             word = sub_word(word);
-            println!("sub word {:x}",word);
-            println!("rcon {:x}",rcon[i/key_length]);
+            //println!("sub word {:x}",word);
+            //println!("rcon {:x}",rcon[i/key_length]);
             word = word ^ rcon[i/key_length];
-            println!("rcon xor {:x}",word);
+            //println!("rcon xor {:x}",word);
         }else if 6<nk && i%key_length == 4{
             word = sub_word(word);
         }
         let pre_word = round_key[i-key_length].clone();
-        println!("pre word {:x}",pre_word);
+        //println!("pre word {:x}",pre_word);
         word = word ^ pre_word;
-        println!("pre xor {:x}",word);
+        //println!("pre xor {:x}",word);
         round_key.push(word);
     }
     round_key
