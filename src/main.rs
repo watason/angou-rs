@@ -6,6 +6,9 @@ use domain::value_object::aes_gf::aesGF;
 use domain::value_object::aes_type;
 use cipher::*;
 
+use crate::domain::value_object;
+use crate::domain::value_object::aes_type::Type;
+
 // impl Cipher{
 //     fn make_sbox(self)-> [u8;256]{
 //         let mut ret : [u8;256] = [0;256];
@@ -36,7 +39,7 @@ fn main() {
     for item in rcon.iter(){
         println!("rcon is {:x}",item);
     }
-    let (aes_type,nk,nr) = aes_type::aes_tuple(0).unwrap();
+    let (nk,nr) = Type::aes128.nk_nr();
 
     let key :[u8;32] = [1;32];
     let mut input  = vec![0;16];
@@ -174,25 +177,8 @@ fn main() {
     let test_input :[u8;16]= [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
     let cipher_key :[u32;4]=[0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
  
-
-    let a : aesGF = aesGF{value : 2};
-    let b  = aesGF{value : 2};
-    let c = aesGF{value: 0xd4};
-    let (mysbox , my_inv_sbox) = cipher::make_sbox();
-    for (index,item) in mysbox.iter().enumerate(){
-        if index%16 == 0 && index != 0 {println!();}
-        print!("{:>02x},",item);
-    }
-    println!();
-    
-    println!();
-    for (index,item) in my_inv_sbox.iter().enumerate(){
-        if index%16 == 0 && index != 0 {println!();}
-        print!("{:>02x},",item);
-    }
-    println!("{}",a+b);
-    println!("{}",a*a);
-    //c.makeSbox();
-
+    let t = value_object::aes_type::Type::aes128;
+    let (nk,nr) = t.nk_nr();
+    println!("type is {} {}",nk,nr);
 
 }

@@ -7,14 +7,12 @@ pub enum Type {
     aes256
 }
 
-#[derive(Default,Debug,Copy,Clone)]
-pub struct aes_type(Type,u8,u8);
-
-pub fn aes_tuple(num : u8)-> Result<(Type,u8,u8),String>{
-    match num {
-        0 => Ok((Type::aes128,4,10)),
-        1 => Ok((Type::aes192,6,12)),
-        2 => Ok((Type::aes256,8,14)),
-        _ => Err("error".to_string())
+impl Type {
+    pub fn nk_nr(self)->(u8,u8){
+        match self{
+            Type::aes128 => (4,10),
+            Type::aes192 => (6,12),
+            Type::aes256 => (8,14)
+        }
     }
 }
