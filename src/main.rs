@@ -39,7 +39,7 @@ fn main() {
     for item in rcon.iter(){
         println!("rcon is {:x}",item);
     }
-    let (nk,nr) = Type::aes128.nk_nr();
+    let (nk,nr) = Type::Aes128.nk_nr();
 
     let key :[u8;32] = [1;32];
     let mut input  = vec![0;16];
@@ -177,7 +177,7 @@ fn main() {
     let test_input :[u8;16]= [0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
     let cipher_key :[u32;4]=[0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
  
-    let t = value_object::aes_type::Type::aes128;
+    let t = value_object::aes_type::Type::Aes128;
     let (nk,nr) = t.nk_nr();
     println!("type is {} {}",nk,nr);
 
