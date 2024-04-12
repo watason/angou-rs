@@ -95,7 +95,7 @@ pub fn shift_row(blocks : Vec<u8>,inverse : bool) -> Vec<u8>{
             }else{ (i+4-j)%4};
             ret[4*slide +j] = blocks[4*i+j];
         }
-        println!("{:?}",ret);
+        //println!("{:?}",ret);
     }
     ret
 }
@@ -224,7 +224,10 @@ pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
 pub fn cipher(block :Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
     let mut block : Vec<u8> = block;
     let nr = 10;
-    
+    let nk = 4;
+    let key = key_exp(key, nk, nr);
+    let nr = nr as usize;
+    let nk = nk as usize;
     if !inverse {
     block = add_round_key(block,key[0..4].to_vec(), inverse);
     for i in 1..nr{
