@@ -63,7 +63,7 @@ pub(crate) fn make_sbox() -> ([u8;256],[u8;256]){
     let mut ret_sbox : [u8;256] = [0;256];
     let mut ret_inv_sbox : [u8;256] = [0;256];
     let shift = |x: u8,i : u8| x<<i | x >>(8-i);
-    for i in 0..255{
+    for i in 0..ret_sbox.len(){
         let t = aesGF{value :i as u8}.inv().value;
         ret_sbox[i] = t ^ shift(t,1) ^ shift(t,2) ^ shift(t,3) ^ shift(t,4) ^ 0x63u8;
         ret_inv_sbox[ret_sbox[i] as usize] = i as u8;
@@ -87,7 +87,7 @@ pub fn shift_row(blocks : Vec<u8>,inverse : bool) -> Vec<u8>{
      03 07 11 15 => 07 11 15 03
 
      */
-    let mut ret = vec![0;16];
+    let mut ret = blocks.clone();
     for i in 0..4 {
         for j in 0..4{
             let slide = if inverse{
@@ -197,6 +197,9 @@ pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
     let key_length = nk as usize;
     let mut round_key : Vec<u32>  = Vec::new();
     round_key.extend(key.clone());
+    // for k in round_key.iter().enumerate(){
+    //     println!("round {} key is  {:x}",k.0,k.1);
+    // }
     for i in key_length..round{
         //println!("round {}",i);
         let mut word : u32 = round_key[i-1];
@@ -231,12 +234,15 @@ pub fn cipher(block :Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
     if !inverse {
     block = add_round_key(block,key[0..4].to_vec(), inverse);
     for i in 1..nr{
+        //println!("round {}",i);
+        //println!("input is  {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = sub_bytes(block, inverse);
         //println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = shift_row(block, inverse);
         //println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         block = mix_column(block, inverse);
         //println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("use key  Result: {}", key[4*i..4*(i+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
         block = add_round_key(block, key[4*i..4*(i+1)].to_vec(), inverse);
         //println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     }
@@ -244,7 +250,7 @@ pub fn cipher(block :Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
     //println!("after subbyte final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
     block = shift_row(block, inverse);
     //println!("after shift row final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-    //println!("after use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
+    //println!("use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
     block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
     }else{
         block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
