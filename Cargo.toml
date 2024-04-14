@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 galois_field = "0.1.11"
 gf = "0.6.1"
+hex = "0.4.3"

@@ -183,7 +183,34 @@ fn main() {
     let input = cipher::cipher(input, key.clone(), true);
     println!("after ciphertxt test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
+    //plain=ae2d8a571e03ac9c9eb76fac45af8e51
+    //key=2b7e151628aed2a6abf7158809cf4f3c
+    //cipher=f5d3d58503b9699de785895a96fdbaaf
+    let input = hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").expect("test ae2d error");
+    println!("decode input is {:x?}",input);
+    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
 
+    let input = cipher::cipher(input, key.clone(), false);
+    println!("ciphertxt  test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    let input = cipher::cipher(input, key.clone(), true);
+    println!("after ciphertxt test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+
+    
+    
+    //openssl
+    //encode 
+    //key= 2b7e151628aed2a6abf7158809cf4f3c
+    //ciphertext=53616c7465645f5fa042fac4400738e8fa675d31fe226edd81cc54fddb5127bc5954ad474733fbf63b9e1a5187655e93
+    let input = hex::decode("53616c7465645f5fa042fac4400738e8fa675d31fe226edd81cc54fddb5127bc5954ad474733fbf63b9e1a5187655e93").expect("error string to hex");
+    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+    //let input = cipher::cipher(input, key.clone(), false);
+    //println!("ciphertxt  test4  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    let input = cipher::cipher(input, key.clone(), true);
+    println!("after ciphertxt test4  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+
+    
+    
     
     
     
