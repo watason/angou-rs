@@ -4,7 +4,7 @@ use crate::domain::value_object::blocks;
 
 use super::domain::value_object::aes_gf::aesGF;
 
-pub(crate) trait Rayer{
+pub(crate) trait CommonKeyRayer{
     fn forward(&self,blocks : Vec<u8>)->Vec<u8>;
     fn back(&self,blocks : Vec<u8>)->Vec<u8>;
 }
@@ -75,49 +75,7 @@ impl AES{
         input
     }
 }
-struct ShiftRow{}
-struct MixCulumn{}
-struct SubBytes{}
-struct AddRoundKey{}
 
-impl Rayer for ShiftRow{
-    fn forward(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-
-    fn back(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-}
-
-impl Rayer for MixCulumn{
-    fn forward(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-
-    fn back(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-}
-
-impl Rayer for SubBytes{
-    fn forward(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-
-    fn back(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-}
-impl Rayer for AddRoundKey{
-    fn forward(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-
-    fn back(&self,blocks : Vec<u8>)->Vec<u8> {
-        todo!()
-    }
-}
 pub(crate) fn make_sbox() -> ([u8;256],[u8;256]){
     let mut ret_sbox : [u8;256] = [0;256];
     let mut ret_inv_sbox : [u8;256] = [0;256];
@@ -344,35 +302,3 @@ pub fn padding_pkcs_7(input : Vec<u8>)->Vec<u8>{
     println!("padding size {}",ret.len());
     ret
 }
-// pub fn key_expansion(keys : &[u8],nk : u8,nr : u8,rcon : &[u8])->Box<[u8]>{
-//     let round_count = ((nr as usize) + 1) * 16;
-//     let word :usize = 16;
-//     let key_num = nk as usize*4;
-//     let mut ret :Box<[u8]> = Box::new([0;176]);
-//     for i in (0..round_count).step_by(4){
-//         if i/key_num == 0{
-//             for j in 0..4{
-//                 ret[4*i+j] = keys[4*i+j];
-//             }
-//         }else {
-//             let mut key = &mut ret[(i-4)..i];
-//             let pre = &ret[(i-key_num)..(i-key_num+3)];
-//             if i%key_num == 0{
-//                 let mut w = sub_word(key);
-//                 let mut w = shift_word(w);
-                
-//                 ret[4*i ] ^= w[0] ;
-//                 ret[4*i +1] ^= w[1] ;
-//                 ret[4*i +2] ^= w[2] ;
-//                 ret[4*i +3] ^= w[3] ^ rcon[i/16];
-//             }
-
-//             ret[4*i ] ^= pre[0] ;
-//             ret[4*i +1] ^= pre[1] ;
-//             ret[4*i +2] ^= pre[2] ;
-//             ret[4*i +3] ^= pre[3] ;
-
-//         }
-//     }
-//     ret
-// }
