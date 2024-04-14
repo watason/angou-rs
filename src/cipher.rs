@@ -1,8 +1,9 @@
 use std::ops::Add;
 
-use crate::domain::value_object::blocks;
+use crate::domain::value_object::{aes_type, blocks};
 
 use super::domain::value_object::aes_gf::aesGF;
+use aes_type::*;
 
 pub(crate) trait CommonKeyRayer{
     fn forward(&self,blocks : Vec<u8>)->Vec<u8>;
@@ -12,21 +13,20 @@ pub(crate) trait CommonKeyRayer{
 pub struct AES{
     key : Vec<u32>,
     sbox : [u8;256],
-    inv_sbox:[u8;256]
+    inv_sbox:[u8;256],
+    bit_type : BitType,
+    mode : Mode
 }
 impl AES{
-    pub fn new(key : Vec<u32>)->Self{
+    pub fn new(key : Vec<u32>,bit_type : BitType,mode : Mode)->Self{
         let (sbox,inv) = make_sbox();
-        Self { key: key, sbox: sbox, inv_sbox: inv}
+        Self { key: key, sbox: sbox, inv_sbox: inv,bit_type,mode}
     }
     
     pub fn encrypt(&self,input : Vec<u8>)->Vec<u8>{
         let mut block : Vec<u8> = input;
-        let nr = 10;
-        let nk = 4;
+        let (nk,nr) = self.bit_type.nk_nr();
         let key = key_exp(self.key.clone(), nk, nr);
-        let nr = nr as usize;
-        let nk = nk as usize;
         let inverse  = false;
         if !inverse {
         block = add_round_key(block,key[0..4].to_vec(), inverse);
@@ -178,7 +178,7 @@ pub fn sub_word(word : &mut [u8])->&mut[u8]{
     }
     word
 }
-pub fn key_exp(key : Vec<u32>,nk : u8,nr :u8)->Vec<u32>{
+pub fn key_exp(key : Vec<u32>,nk : usize,nr :usize)->Vec<u32>{
     let shift_word = |x : u32|x<<8 | x >> 24;
     let sub_word = |x:u32|{
         let connect = |x : [u8;4]|{

@@ -1,18 +1,30 @@
+use std::default;
+
 
 #[derive(Default,Debug,Clone, Copy)]
-pub enum Type {
+pub enum BitType {
     #[default]
     Aes128,
     Aes192,
     Aes256
 }
 
-impl Type {
-    pub fn nk_nr(self)->(u8,u8){
+impl BitType {
+    pub fn nk_nr(self)->(usize,usize){
         match self{
-            Type::Aes128 => (4,10),
-            Type::Aes192 => (6,12),
-            Type::Aes256 => (8,14)
+            BitType::Aes128 => (4,10),
+            BitType::Aes192 => (6,12),
+            BitType::Aes256 => (8,14)
         }
     }
+}
+
+#[derive(Default,Debug,Clone,Copy)]
+pub enum Mode{
+    #[default]
+    Ecb,
+    Cbc
+}
+
+impl Mode{
 }
