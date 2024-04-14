@@ -12,20 +12,67 @@ pub(crate) trait Rayer{
 pub struct AES{
     key : Vec<u32>,
     sbox : [u8;256],
-    inv_sbox:[u8;256],
-    inverse : bool
+    inv_sbox:[u8;256]
 }
 impl AES{
     pub fn new(key : Vec<u32>)->Self{
         let (sbox,inv) = make_sbox();
-        Self { key: key, sbox: sbox, inv_sbox: inv, inverse: false }
+        Self { key: key, sbox: sbox, inv_sbox: inv}
     }
     
-    pub fn encrypt(input : Vec<u8>){
-
+    pub fn encrypt(&self,input : Vec<u8>)->Vec<u8>{
+        let mut block : Vec<u8> = input;
+        let nr = 10;
+        let nk = 4;
+        let key = key_exp(self.key.clone(), nk, nr);
+        let nr = nr as usize;
+        let nk = nk as usize;
+        let inverse  = false;
+        if !inverse {
+        block = add_round_key(block,key[0..4].to_vec(), inverse);
+        for i in 1..nr{
+            //println!("round {}",i);
+            //println!("input is  {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = sub_bytes(block, inverse);
+            //println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = shift_row(block, inverse);
+            //println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = mix_column(block, inverse);
+            //println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            //println!("use key  Result: {}", key[4*i..4*(i+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
+            block = add_round_key(block, key[4*i..4*(i+1)].to_vec(), inverse);
+            //println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        }
+        block = sub_bytes(block, inverse);
+        //println!("after subbyte final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        block = shift_row(block, inverse);
+        //println!("after shift row final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        //println!("use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
+        block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
+        }else{
+            block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
+            for i in (1..nr).rev(){
+                block = shift_row(block, inverse);
+                //println!("after shift row {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+                block = sub_bytes(block, inverse);
+                //println!("after subbyte {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+                block = add_round_key(block, key[4*i..4*(i+1)].to_vec(), inverse);
+                //println!("after add round key{}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+                block = mix_column(block, inverse);
+                //println!("after mix column {}  Result: {}",i, block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            }
+            
+            block = shift_row(block, inverse);
+            //println!("after shift row Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = sub_bytes(block, inverse);
+            //println!("after subbyte Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+            block = add_round_key(block, key[0..4].to_vec(), inverse);
+            //println!("after add round key  Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+        }
+        block
     }
-    pub fn decrypt(input : Vec<u8>){
-
+    pub fn decrypt(input : Vec<u8>)->Vec<u8>{
+        input
     }
 }
 struct ShiftRow{}
