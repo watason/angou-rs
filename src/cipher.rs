@@ -8,13 +8,25 @@ pub(crate) trait Rayer{
     fn forward(&self,blocks : Vec<u8>)->Vec<u8>;
     fn back(&self,blocks : Vec<u8>)->Vec<u8>;
 }
-#[derive(Default,Debug)]
-struct Cipher{
-    inverse : bool,
-    input : [u8;16]
+#[derive(Debug)]
+pub struct AES{
+    key : Vec<u32>,
+    sbox : [u8;256],
+    inv_sbox:[u8;256],
+    inverse : bool
 }
-impl Cipher{
+impl AES{
+    pub fn new(key : Vec<u32>)->Self{
+        let (sbox,inv) = make_sbox();
+        Self { key: key, sbox: sbox, inv_sbox: inv, inverse: false }
+    }
+    
+    pub fn encrypt(input : Vec<u8>){
 
+    }
+    pub fn decrypt(input : Vec<u8>){
+
+    }
 }
 struct ShiftRow{}
 struct MixCulumn{}

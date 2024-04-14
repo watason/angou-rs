@@ -213,7 +213,8 @@ fn main() {
     
     
     
-    
+    let aes : AES = AES::new(key.clone());
+    println!("{:x?}",aes);
     // let keys = cipher::key_expansion(&key128, nk, nr, &rcon);
     // println!("{:?}",key);
 
