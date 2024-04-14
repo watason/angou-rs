@@ -19,11 +19,11 @@ impl BitType {
     }
 }
 
-#[derive(Default,Debug,Clone,Copy)]
+#[derive(Default,Debug,Clone)]
 pub enum Mode{
     #[default]
     Ecb,
-    Cbc
+    Cbc(Vec<u32>)
 }
 
 impl Mode{
