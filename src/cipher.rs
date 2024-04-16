@@ -5,26 +5,47 @@ use crate::domain::value_object::{aes_type, blocks};
 use super::domain::value_object::aes_gf::aesGF;
 use aes_type::*;
 
+
+
+#[derive(Debug,Clone)]
+struct Key{
+    value : Vec<u32>,
+    bit_type : aes_type::BitType,
+    mode : aes_type::Mode
+}
+
+impl Key{
+    
+}
 pub(crate) trait CommonKeyRayer{
     fn forward(&self,blocks : Vec<u8>)->Vec<u8>;
     fn back(&self,blocks : Vec<u8>)->Vec<u8>;
 }
 #[derive(Debug)]
 pub struct AES{
-    key : Vec<u32>,
     sbox : [u8;256],
-    inv_sbox:[u8;256],
-    bit_type : BitType,
-    mode : Mode
+    inv_sbox:[u8;256]
 }
 impl AES{
-    pub fn new(key : Vec<u32>,bit_type : BitType,mode : Mode)->Self{
+    const RCON : [u32;11] = [
+        0x00000000, /* invalid */
+        0x01000000, /* x^0 */
+        0x02000000, /* x^1 */
+        0x04000000, /* x^2 */
+        0x08000000, /* x^3 */
+        0x10000000, /* x^4 */
+        0x20000000, /* x^5 */
+        0x40000000, /* x^6 */
+        0x80000000, /* x^7 */
+        0x1B000000, /* x^4 + x^3 + x^1 + x^0 */
+        0x36000000, /* x^5 + x^4 + x^2 + x^1 */
+    ];
+    pub fn new()->Self{
         let (sbox,inv) = make_sbox();
-        Self { key: key, sbox: sbox, inv_sbox: inv,bit_type,mode}
+        Self { sbox: sbox, inv_sbox: inv}
     }
-    fn key_expansion(&self)->Vec<u32>{
-        let key = self.key.clone();
-        let (nk,nr) = self.bit_type.nk_nr();
+    fn key_expansion(&self,key : Key)->Vec<u32>{
+        let (nk,nr) = key.bit_type.nk_nr();
         let shift_word = |x : u32|x<<8 | x >> 24;
         let sub_word = |x:u32|{
             let connect = |x : [u8;4]|{
@@ -42,23 +63,11 @@ impl AES{
         // let key = sub_word(key);
         // println!("{:?}",key);
         // key;
-        let rcon : [u32;11] = [
-            0x00000000, /* invalid */
-            0x01000000, /* x^0 */
-            0x02000000, /* x^1 */
-            0x04000000, /* x^2 */
-            0x08000000, /* x^3 */
-            0x10000000, /* x^4 */
-            0x20000000, /* x^5 */
-            0x40000000, /* x^6 */
-            0x80000000, /* x^7 */
-            0x1B000000, /* x^4 + x^3 + x^1 + x^0 */
-            0x36000000, /* x^5 + x^4 + x^2 + x^1 */
-        ];
+
         let round = (nr as usize +1)*4;
         let key_length = nk as usize;
         let mut round_key : Vec<u32>  = Vec::new();
-        round_key.extend(key.clone());
+        round_key.extend(key.value.clone());
         // for k in round_key.iter().enumerate(){
         //     println!("round {} key is  {:x}",k.0,k.1);
         // }
@@ -72,7 +81,7 @@ impl AES{
                 word = sub_word(word);
                 //println!("sub word {:x}",word);
                 //println!("rcon {:x}",rcon[i/key_length]);
-                word = word ^ rcon[i/key_length];
+                word = word ^ AES::RCON[i/key_length];
                 //println!("rcon xor {:x}",word);
             }else if 6<nk && i%key_length == 4{
                 word = sub_word(word);
@@ -85,10 +94,10 @@ impl AES{
         }
         round_key
     }
-    pub fn encrypt(&self,input : Vec<u8>)->Vec<u8>{
+    pub fn encrypt(&self,input : Vec<u8>,key : Key)->Vec<u8>{
         let mut block : Vec<u8> = input;
-        let (nk,nr) = self.bit_type.nk_nr();
-        let key = self.key_expansion();
+        let (nk,nr) = key.bit_type.nk_nr();
+        let key = self.key_expansion(key.clone());
         let inverse  = false;
         if !inverse {
         block = add_round_key(block,key[0..4].to_vec(), inverse);
@@ -442,8 +451,8 @@ mod test{
         let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
         let bit_type = aes_type::BitType::Aes128;
         let mode = aes_type::Mode::Ecb;
-        let aes : AES = AES::new(key.clone(),bit_type,mode);
-        let input = aes.encrypt(input);
+        let aes : AES = AES::new();
+        let input = aes.encrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
         assert_eq!(input,hex::decode("f5d3d58503b9699de785895a96fdbaaf").unwrap());
     }
 
@@ -457,8 +466,8 @@ mod test{
         let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617];
         let bit_type = aes_type::BitType::Aes192;
         let mode = aes_type::Mode::Ecb;
-        let aes : AES = AES::new(key.clone(),bit_type,mode);
-        let input = aes.encrypt(input);
+        let aes : AES = AES::new();
+        let input = aes.encrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
         assert_eq!(input,hex::decode("dda97ca4864cdfe06eaf70a0ec0d7191").unwrap());
     }
 
@@ -472,8 +481,8 @@ mod test{
         let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617,0x18191a1b,0x1c1d1e1f];
         let bit_type = aes_type::BitType::Aes256;
         let mode = aes_type::Mode::Ecb;
-        let aes : AES = AES::new(key.clone(),bit_type,mode);
-        let input = aes.encrypt(input);
+        let aes : AES = AES::new();
+        let input = aes.encrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
         assert_eq!(input,hex::decode("8ea2b7ca516745bfeafc49904b496089").unwrap());
     }
 
