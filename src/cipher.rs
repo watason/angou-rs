@@ -497,4 +497,36 @@ mod test{
         assert_eq!(input,hex::decode("00112233445566778899aabbccddeeff").unwrap());
     }
 
+    #[test]
+    fn test_hex(){
+        let input = hex::decode("2b7e151628aed2a6abf7158809cf4f3c").unwrap();
+        let vec_u32 = (0..input.len()).step_by(4).map(|x |{
+            let y : u32 =  (input[x] as u32) << 24 | (input[x+1] as u32) << 16 | (input[x+2] as u32) << 8 | (input[x+3] as u32);
+            y  
+        }).collect::<Vec<u32>>();
+        let ans = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+        assert_eq!(ans,vec_u32);
+    }
+
+    #[test]
+    fn test_key_expansion(){
+    // let keys = cipher::key_expansion(&key128, nk, nr, &rcon);
+    // println!("{:?}",key);
+
+
+    //let key128 : Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+    //let key_e = cipher::key_exp(key128.clone(), nk, nr);
+    // println!("Result: {}", key_e.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    // println!("{:?}",key_e.len());
+
+    //let key192 : Vec<u32> = vec![0x8e73b0f7,0xda0e6452,0xc810f32b,0x809079e5,0x62f8ead2,0x522c6b7b];
+    //let key192_ex = cipher::key_exp(key192, 6, 12);
+    //println!("Result: {}", key192_ex.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    //println!("{:?}",key192_ex.len());
+
+    //let key256 : Vec<u32> = vec![0x603deb10,0x15ca71be,0x2b73aef0,0x857d7781,0x1f352c07,0x3b6108d7,0x2d9810a3,0x0914dff4];
+    //let key256_ex = cipher::key_exp(key256, 8, 14);
+    //println!("Result: {}", key256_ex.iter().map(|x| format!("{:02X}", x)).collect::<String>());
+    //println!("{:?}",key256_ex.len());
+    }
 }
