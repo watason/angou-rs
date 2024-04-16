@@ -142,13 +142,7 @@ fn main() {
     
     
     
-    let input = hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").expect("test ae2d error");
-    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
-    let bit_type = aes_type::BitType::Aes128;
-    let mode = aes_type::Mode::Ecb;
-    let aes : AES = AES::new(key.clone(),bit_type,mode);
-    let input = aes.encrypt(input);
-    println!("{:x?}",input);
+
     // let keys = cipher::key_expansion(&key128, nk, nr, &rcon);
     // println!("{:?}",key);
 

@@ -22,11 +22,73 @@ impl AES{
         let (sbox,inv) = make_sbox();
         Self { key: key, sbox: sbox, inv_sbox: inv,bit_type,mode}
     }
-    
+    fn key_expansion(&self)->Vec<u32>{
+        let key = self.key.clone();
+        let (nk,nr) = self.bit_type.nk_nr();
+        let shift_word = |x : u32|x<<8 | x >> 24;
+        let sub_word = |x:u32|{
+            let connect = |x : [u8;4]|{
+                    ((x[0] as u32) << 24) +
+                    ((x[1] as u32) << 16) +
+                    ((x[2] as u32) <<  8) +
+                    ((x[3] as u32) <<  0)
+            };
+            let mut vec_u8 = x.to_be_bytes();
+            let s = vec_u8.map(|x|self.sbox[x as usize]);
+            connect(s)
+        };
+        // let key = shift_word(key[0]);
+        // println!("{:x}",key);
+        // let key = sub_word(key);
+        // println!("{:?}",key);
+        // key;
+        let rcon : [u32;11] = [
+            0x00000000, /* invalid */
+            0x01000000, /* x^0 */
+            0x02000000, /* x^1 */
+            0x04000000, /* x^2 */
+            0x08000000, /* x^3 */
+            0x10000000, /* x^4 */
+            0x20000000, /* x^5 */
+            0x40000000, /* x^6 */
+            0x80000000, /* x^7 */
+            0x1B000000, /* x^4 + x^3 + x^1 + x^0 */
+            0x36000000, /* x^5 + x^4 + x^2 + x^1 */
+        ];
+        let round = (nr as usize +1)*4;
+        let key_length = nk as usize;
+        let mut round_key : Vec<u32>  = Vec::new();
+        round_key.extend(key.clone());
+        // for k in round_key.iter().enumerate(){
+        //     println!("round {} key is  {:x}",k.0,k.1);
+        // }
+        for i in key_length..round{
+            //println!("round {}",i);
+            let mut word : u32 = round_key[i-1];
+            //println!("word {:x}",word);
+            if i%key_length == 0 {
+                word = shift_word(word);
+                //println!("shif word {:x}",word);
+                word = sub_word(word);
+                //println!("sub word {:x}",word);
+                //println!("rcon {:x}",rcon[i/key_length]);
+                word = word ^ rcon[i/key_length];
+                //println!("rcon xor {:x}",word);
+            }else if 6<nk && i%key_length == 4{
+                word = sub_word(word);
+            }
+            let pre_word = round_key[i-key_length].clone();
+            //println!("pre word {:x}",pre_word);
+            word = word ^ pre_word;
+            //println!("pre xor {:x}",word);
+            round_key.push(word);
+        }
+        round_key
+    }
     pub fn encrypt(&self,input : Vec<u8>)->Vec<u8>{
         let mut block : Vec<u8> = input;
         let (nk,nr) = self.bit_type.nk_nr();
-        let key = key_exp(self.key.clone(), nk, nr);
+        let key = self.key_expansion();
         let inverse  = false;
         if !inverse {
         block = add_round_key(block,key[0..4].to_vec(), inverse);
@@ -371,6 +433,18 @@ mod test{
     assert_eq!(input,hex::decode("69c4e0d86a7b0430d8cdb78070b4c55a").unwrap());
     let input = cipher(input, key.clone(), true);
     assert_eq!(input,hex::decode("00112233445566778899aabbccddeeff").unwrap());
+    }
+
+
+    #[test]
+    fn test_aes(){
+        let input = hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").expect("test ae2d error");
+        let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+        let bit_type = aes_type::BitType::Aes128;
+        let mode = aes_type::Mode::Ecb;
+        let aes : AES = AES::new(key.clone(),bit_type,mode);
+        let input = aes.encrypt(input);
+        assert_eq!(input,hex::decode("f5d3d58503b9699de785895a96fdbaaf").unwrap());
     }
 
 }
