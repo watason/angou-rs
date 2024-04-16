@@ -437,7 +437,7 @@ mod test{
 
 
     #[test]
-    fn test_aes(){
+    fn test_aes_128(){
         let input = hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").expect("test ae2d error");
         let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
         let bit_type = aes_type::BitType::Aes128;
@@ -445,6 +445,36 @@ mod test{
         let aes : AES = AES::new(key.clone(),bit_type,mode);
         let input = aes.encrypt(input);
         assert_eq!(input,hex::decode("f5d3d58503b9699de785895a96fdbaaf").unwrap());
+    }
+
+    
+    #[test]
+    fn test_aes_192(){
+        //plain=00112233445566778899aabbccddeeff
+        //key=000102030405060708090a0b0c0d0e0f1011121314151617
+        //cipher=dda97ca4864cdfe06eaf70a0ec0d7191
+        let input = hex::decode("00112233445566778899aabbccddeeff").expect("test ae2d error");
+        let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617];
+        let bit_type = aes_type::BitType::Aes192;
+        let mode = aes_type::Mode::Ecb;
+        let aes : AES = AES::new(key.clone(),bit_type,mode);
+        let input = aes.encrypt(input);
+        assert_eq!(input,hex::decode("dda97ca4864cdfe06eaf70a0ec0d7191").unwrap());
+    }
+
+
+    #[test]
+    fn test_aes_256(){
+        //plain=00112233445566778899aabbccddeeff
+        //key=000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
+        //cipher=8ea2b7ca516745bfeafc49904b496089
+        let input = hex::decode("00112233445566778899aabbccddeeff").expect("test ae2d error");
+        let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617,0x18191a1b,0x1c1d1e1f];
+        let bit_type = aes_type::BitType::Aes256;
+        let mode = aes_type::Mode::Ecb;
+        let aes : AES = AES::new(key.clone(),bit_type,mode);
+        let input = aes.encrypt(input);
+        assert_eq!(input,hex::decode("8ea2b7ca516745bfeafc49904b496089").unwrap());
     }
 
 }
