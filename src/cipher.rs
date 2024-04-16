@@ -96,10 +96,9 @@ impl AES{
     }
     pub fn encrypt(&self,input : Vec<u8>,key : Key)->Vec<u8>{
         let mut block : Vec<u8> = input;
+        let inverse = false;
         let (nk,nr) = key.bit_type.nk_nr();
         let key = self.key_expansion(key.clone());
-        let inverse  = false;
-        if !inverse {
         block = add_round_key(block,key[0..4].to_vec(), inverse);
         for i in 1..nr{
             //println!("round {}",i);
@@ -120,7 +119,13 @@ impl AES{
         //println!("after shift row final Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
         //println!("use key final Result: {}", key[4*nr..4*(nr+1)].iter().map(|x| format!("{:02X}", x)).collect::<String>()); 
         block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
-        }else{
+        block
+    }
+    pub fn decrypt(&self,input : Vec<u8>,key : Key)->Vec<u8>{
+        let mut block : Vec<u8> = input;
+        let inverse = true;
+        let (nk,nr) = key.bit_type.nk_nr();
+        let key = self.key_expansion(key.clone());
             block = add_round_key(block, key[4*nr..4*(nr+1)].to_vec(), inverse);
             for i in (1..nr).rev(){
                 block = shift_row(block, inverse);
@@ -139,11 +144,7 @@ impl AES{
             //println!("after subbyte Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
             block = add_round_key(block, key[0..4].to_vec(), inverse);
             //println!("after add round key  Result: {}", block.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-        }
         block
-    }
-    pub fn decrypt(input : Vec<u8>)->Vec<u8>{
-        input
     }
 }
 
@@ -452,8 +453,11 @@ mod test{
         let bit_type = aes_type::BitType::Aes128;
         let mode = aes_type::Mode::Ecb;
         let aes : AES = AES::new();
-        let input = aes.encrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
+        let input = aes.encrypt(input,Key{value :key.clone(),bit_type:bit_type.clone(),mode :mode.clone()});
         assert_eq!(input,hex::decode("f5d3d58503b9699de785895a96fdbaaf").unwrap());
+        
+        let input = aes.decrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
+        assert_eq!(input,hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").unwrap());
     }
 
     
@@ -467,8 +471,12 @@ mod test{
         let bit_type = aes_type::BitType::Aes192;
         let mode = aes_type::Mode::Ecb;
         let aes : AES = AES::new();
-        let input = aes.encrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
+
+        let input = aes.encrypt(input,Key{value :key.clone(),bit_type:bit_type.clone(),mode :mode.clone()});
         assert_eq!(input,hex::decode("dda97ca4864cdfe06eaf70a0ec0d7191").unwrap());
+        
+        let input = aes.decrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
+        assert_eq!(input,hex::decode("00112233445566778899aabbccddeeff").unwrap());
     }
 
 
@@ -482,8 +490,11 @@ mod test{
         let bit_type = aes_type::BitType::Aes256;
         let mode = aes_type::Mode::Ecb;
         let aes : AES = AES::new();
-        let input = aes.encrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
+
+        let input = aes.encrypt(input,Key{value :key.clone(),bit_type:bit_type.clone(),mode :mode.clone()});
         assert_eq!(input,hex::decode("8ea2b7ca516745bfeafc49904b496089").unwrap());
+        let input = aes.decrypt(input,Key{value :key,bit_type:bit_type,mode :mode});
+        assert_eq!(input,hex::decode("00112233445566778899aabbccddeeff").unwrap());
     }
 
 }
