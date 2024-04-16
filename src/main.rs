@@ -110,20 +110,6 @@ fn main() {
 
 
 
-    // //test vector1
-    // let input = vec![0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
-    // let key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
-    // let key_str = key.clone().into_iter().map(|x|x.to_string()).collect::<String>();
-    // println!("key str is {}",key_str);
-    // //println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-    
-    // let input = cipher::cipher(input, key.clone(), false);
-    // println!("after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-
-    // let input = cipher::cipher(input, key.clone(), true);
-    // println!("after inv cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-
-
     // let s = "hello worldaaaaa".as_bytes().to_vec();
     // println!("hello world byte is {:?}",s);
     // let input = cipher::cipher(s, key.clone(), false);
@@ -137,63 +123,6 @@ fn main() {
     // let ss = cipher::padding_pkcs_7(ss);    
     // //let ss = std::str::from_utf8(&ss).unwrap();
     // println!("paddiing text is {:?}",ss);
-
-
-    // //PLAINTEXT: 00112233445566778899aabbccddeeff
-    // //KEY: 000102030405060708090a0b0c0d0e0f
-    // //output: 69c4e0d86a7b0430d8cdb78070b4c55a
-    // //test vector 2
-
-    // let input = vec![0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff];
-    // let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f];
-
-    // let input = cipher::cipher(input, key.clone(), false);
-    // println!("test vector2 after cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-
-    // let input = cipher::cipher(input, key.clone(), true);
-    // println!("test vector2 after inv cipher  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-
-
-
-
-
-
-    //count = 0
-    //PLAINTEXT = 6bc1bee22e409f96e93d7e117393172a
-    //KEY = 2b7e1516 28aed2a6 abf71588 09cf4f3c
-    //CIPHERTEXT = 3ad77bb40d7a3660a89ecaf32466ef97
-    let input = vec![0x6b,0xc1,0xbe,0xe2,0x2e,0x40,0x9f,0x96,0xe9,0x3d,0x7e,0x11,0x73,0x93,0x17,0x2a];
-    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
-
-    let input = cipher::cipher(input, key.clone(), false);
-    println!("ciphertxt   Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-    let input = cipher::cipher(input, key.clone(), true);
-    println!("after ciphertxt  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-
-
-
-    //plain=ae2d8a571e03ac9c9eb76fac45af8e51
-    //key=2b7e151628aed2a6abf7158809cf4f3c
-    //cipher=f5d3d58503b9699de785895a96fdbaaf
-    let input = vec![0xae,0x2d,0x8a,0x57,0x1e,0x03,0xac,0x9c,0x9e,0xb7,0x6f,0xac,0x45,0xaf,0x8e,0x51];
-    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
-
-    let input = cipher::cipher(input, key.clone(), false);
-    println!("ciphertxt  test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-    let input = cipher::cipher(input, key.clone(), true);
-    println!("after ciphertxt test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-
-    //plain=ae2d8a571e03ac9c9eb76fac45af8e51
-    //key=2b7e151628aed2a6abf7158809cf4f3c
-    //cipher=f5d3d58503b9699de785895a96fdbaaf
-    let input = hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").expect("test ae2d error");
-    println!("decode input is {:x?}",input);
-    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
-
-    let input = cipher::cipher(input, key.clone(), false);
-    println!("ciphertxt  test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
-    let input = cipher::cipher(input, key.clone(), true);
-    println!("after ciphertxt test3  Result: {}", input.iter().map(|x| format!("{:02X}", x)).collect::<String>());
 
 
     

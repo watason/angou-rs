@@ -302,3 +302,75 @@ pub fn padding_pkcs_7(input : Vec<u8>)->Vec<u8>{
     println!("padding size {}",ret.len());
     ret
 }
+
+
+#[cfg(test)]
+mod test{
+    use super::*;
+
+    #[test]
+    fn test_vector1(){
+    //PLAINTEXT = 6bc1bee22e409f96e93d7e117393172a
+    //KEY = 2b7e1516 28aed2a6 abf71588 09cf4f3c
+    //CIPHERTEXT = 3ad77bb40d7a3660a89ecaf32466ef97
+    let input = vec![0x6b,0xc1,0xbe,0xe2,0x2e,0x40,0x9f,0x96,0xe9,0x3d,0x7e,0x11,0x73,0x93,0x17,0x2a];
+    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+
+    let input = cipher(input, key.clone(), false);
+    assert_eq!(input,hex::decode("3ad77bb40d7a3660a89ecaf32466ef97").unwrap());
+    let input = cipher(input, key.clone(), true);
+    assert_eq!(input,hex::decode("6bc1bee22e409f96e93d7e117393172a").unwrap());
+
+    }
+    #[test]
+    fn test_vector2(){
+        
+    //plain=ae2d8a571e03ac9c9eb76fac45af8e51
+    //key=2b7e151628aed2a6abf7158809cf4f3c
+    //cipher=f5d3d58503b9699de785895a96fdbaaf
+    let input = hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").expect("test ae2d error");
+    let key = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+
+    let input = cipher(input, key.clone(), false);
+    assert_eq!(input,hex::decode("f5d3d58503b9699de785895a96fdbaaf").unwrap());
+    let input = cipher(input, key.clone(), true);
+    assert_eq!(input,hex::decode("ae2d8a571e03ac9c9eb76fac45af8e51").unwrap());
+    }
+    
+    #[test]
+    fn test_vector3(){
+    //test vector1
+    //plain=32 43 f6 a8 88 5a 30 8d 31 31 98 a2 e0 37 07 34
+    //key=2b 7e 15 16 28 ae d2 a6 ab f7 15 88 09 cf 4f 3c
+    //cipher= 39 02 dc 19
+    //        25 dc 11 6a
+    //        84 09 85 0b
+    //        1d fb 97 32
+    let input = vec![0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34];
+    let key :Vec<u32> = vec![0x2b7e1516,0x28aed2a6,0xabf71588,0x09cf4f3c];
+
+    let input = cipher(input, key.clone(), false);
+    assert_eq!(input,hex::decode("3925841d02dc09fbdc118597196a0b32").unwrap());
+    let input = cipher(input, key.clone(), true);
+    assert_eq!(input,hex::decode("3243f6a8885a308d313198a2e0370734").unwrap());
+
+    }
+
+    #[test]
+    fn test_vector4(){
+    //PLAINTEXT: 00112233445566778899aabbccddeeff
+    //KEY: 000102030405060708090a0b0c0d0e0f
+    //output: 69c4e0d86a7b0430d8cdb78070b4c55a
+    //test vector 2
+
+    let input = vec![0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff];
+    let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f];
+
+
+    let input = cipher(input, key.clone(), false);
+    assert_eq!(input,hex::decode("69c4e0d86a7b0430d8cdb78070b4c55a").unwrap());
+    let input = cipher(input, key.clone(), true);
+    assert_eq!(input,hex::decode("00112233445566778899aabbccddeeff").unwrap());
+    }
+
+}
