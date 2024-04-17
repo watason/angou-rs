@@ -17,6 +17,12 @@ struct Key{
 impl Key{
     
 }
+type Block = u8;
+type Word = [Block;4];
+#[derive(Default,Debug,Clone)]
+struct State{
+    words : [Word;4]
+}
 pub(crate) trait CommonKeyRayer{
     fn forward(&self,blocks : Vec<u8>)->Vec<u8>;
     fn back(&self,blocks : Vec<u8>)->Vec<u8>;
@@ -436,8 +442,11 @@ mod test{
     //test vector 2
 
     let input = vec![0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88,0x99,0xaa,0xbb,0xcc,0xdd,0xee,0xff];
-    let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f];
-
+    let key_str = hex::decode("000102030405060708090a0b0c0d0e0f").expect("key ae2d error");
+    let key = (0..key_str.len()).step_by(4).map(|x |{
+        let y : u32 =  (key_str[x] as u32) << 24 | (key_str[x+1] as u32) << 16 | (key_str[x+2] as u32) << 8 | (key_str[x+3] as u32);
+        y  
+    }).collect::<Vec<u32>>();
 
     let input = cipher(input, key.clone(), false);
     assert_eq!(input,hex::decode("69c4e0d86a7b0430d8cdb78070b4c55a").unwrap());
@@ -467,7 +476,11 @@ mod test{
         //key=000102030405060708090a0b0c0d0e0f1011121314151617
         //cipher=dda97ca4864cdfe06eaf70a0ec0d7191
         let input = hex::decode("00112233445566778899aabbccddeeff").expect("test ae2d error");
-        let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617];
+        let key_str = hex::decode("000102030405060708090a0b0c0d0e0f1011121314151617").expect("key ae2d error");
+        let key = (0..key_str.len()).step_by(4).map(|x |{
+            let y : u32 =  (key_str[x] as u32) << 24 | (key_str[x+1] as u32) << 16 | (key_str[x+2] as u32) << 8 | (key_str[x+3] as u32);
+            y  
+        }).collect::<Vec<u32>>();
         let bit_type = aes_type::BitType::Aes192;
         let mode = aes_type::Mode::Ecb;
         let aes : AES = AES::new();
@@ -486,7 +499,12 @@ mod test{
         //key=000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
         //cipher=8ea2b7ca516745bfeafc49904b496089
         let input = hex::decode("00112233445566778899aabbccddeeff").expect("test ae2d error");
-        let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617,0x18191a1b,0x1c1d1e1f];
+        let key_str = hex::decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f").expect("key ae2d error");
+        let key = (0..key_str.len()).step_by(4).map(|x |{
+            let y : u32 =  (key_str[x] as u32) << 24 | (key_str[x+1] as u32) << 16 | (key_str[x+2] as u32) << 8 | (key_str[x+3] as u32);
+            y  
+        }).collect::<Vec<u32>>();
+        //let key = vec![0x00010203,0x04050607,0x08090a0b,0x0c0d0e0f,0x10111213,0x14151617,0x18191a1b,0x1c1d1e1f];
         let bit_type = aes_type::BitType::Aes256;
         let mode = aes_type::Mode::Ecb;
         let aes : AES = AES::new();
