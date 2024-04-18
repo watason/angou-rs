@@ -27,7 +27,7 @@ impl Mul for aesGF{
             if n&1 == 1 {
                 ret = ret ^ a;
             }
-            a = (a << 1) ^ (if a&0x80 == 0x80 {0x1b}else{0});
+            a = (a << 1) ^ (if a&0x80 == 0x80 {0x1b}else{0}) & 0xff;
             //println!("{:>08b} {} {:>08b}",ret,n,a);
             
             n >>= 1;

@@ -1,20 +1,30 @@
+use std::default;
+
 
 #[derive(Default,Debug,Clone, Copy)]
-pub enum Type {
+pub enum BitType {
     #[default]
-    aes128,
-    aes192,
-    aes256
+    Aes128,
+    Aes192,
+    Aes256
 }
 
-#[derive(Default,Debug,Copy,Clone)]
-pub struct aes_type(Type,u8,u8);
-
-pub fn aes_tuple(num : u8)-> Result<(Type,u8,u8),String>{
-    match num {
-        0 => Ok((Type::aes128,4,10)),
-        1 => Ok((Type::aes192,6,12)),
-        2 => Ok((Type::aes256,8,14)),
-        _ => Err("error".to_string())
+impl BitType {
+    pub fn nk_nr(self)->(usize,usize){
+        match self{
+            BitType::Aes128 => (4,10),
+            BitType::Aes192 => (6,12),
+            BitType::Aes256 => (8,14)
+        }
     }
+}
+
+#[derive(Default,Debug,Clone)]
+pub enum Mode{
+    #[default]
+    Ecb,
+    Cbc(Vec<u32>)
+}
+
+impl Mode{
 }
