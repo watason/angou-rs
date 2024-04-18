@@ -3,18 +3,6 @@
 version = 3
 
 [[package]]
-name = "galois_field"
-version = "0.1.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1a2cdb611ee8bad70c9f5bbc84bbddc520984a8fa2551b54ab7a788689ef8c3"
-
-[[package]]
-name = "gf"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39327b995ea5119982d1f0f901ea53a812e06983ae10b2efe541d169c40bf8ac"
-
-[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -24,7 +12,5 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 name = "testf"
 version = "0.1.0"
 dependencies = [
- "galois_field",
- "gf",
  "hex",
 ]

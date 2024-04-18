@@ -1,7 +1,6 @@
 
 mod domain;
 mod cipher;
-use gf::GF256;
 use domain::value_object::aes_gf::aesGF;
 use domain::value_object::aes_type;
 use cipher::*;
