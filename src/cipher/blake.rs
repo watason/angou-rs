@@ -95,7 +95,12 @@ impl Blake2 {
     }
 
     fn g(&self){
-        
+
     }
 
+}
+
+#[cfg(test)]
+mod test{
+    
 }
