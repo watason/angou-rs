@@ -31,7 +31,7 @@ impl Blake2 {
     ]; 
 
     fn new()->Self{
-        Self{h:blake2b_iv}
+        Self{h:Self::IV}
     } 
 
     fn rotate(x : u64,y : u64)->u64{
@@ -42,8 +42,8 @@ impl Blake2 {
         let m = m;
         let message_len : u128 = m.len();
         let key = key;
-        let nn : u64 = nn;
-        let key_length : u64 = key.value.len();
+        let nn : u64 = nn.into();
+        let key_length : u64 = key.value.len().try_into().unwrap();
 
         let mut h = blake2b_iv.to_vec();
         let mut cbyte_compress : u128 = 0;
@@ -65,14 +65,14 @@ impl Blake2 {
         cbyte_compress += 128;
         cbyte_remain -= 128;
 
-        h= self.comress(h,chunk,cbyte_compress,true);
+        h= self.compress(h,chunk,cbyte_compress,true);
 
         h[0..nn]
     }
 
     fn compress(&self,h:Vec<u8>,chunk:&[u8],cbyte_compress: u128,final : bool)->Vec<u8>{
         let mut v : Vec<u8> = h;
-        v.extend(self.iv);
+        v.extend(Self::IV);
 
         v[12] ^= u64::try_from(t).ok();
         v[13] ^= u64::try_from(t >> 64).ok();
@@ -94,13 +94,24 @@ impl Blake2 {
         }).collect::<Vec<u8>>()
     }
 
-    fn g(&self){
-
+    fn g(&self,a : u64,b:u64,c:u64,d:u64,x:u64,y:u64){                                   
+          a = a + b + x; 
+          d = (d ^ a).rotate_right(32);                  
+          c = c + d;                              
+          b = (b ^ c).rotate_right(24);                  
+          a = a + b + m[blake2b_sigma[r][2*i+1]]; 
+          d = (d ^ a).rotate_right(16);                  
+          c = c + d;                              
+          b = (b ^ c).rotate_right(63);                  
     }
-
 }
 
 #[cfg(test)]
 mod test{
+    use super::*;
     
+    #[test]
+    fn g_test(){
+        let b : Blake2 =  Blake2::new();
+    }
 }
