@@ -53,15 +53,21 @@ impl Blake2 {
     //  h[0] := h[0] ^ 0x01010000 ^ (kk << 8) ^ nn
     h[0] = h[0] ^ 0x01010000u64 ^ kk.wrapping_shl(8) ^ nn;
 
-    println!("{:?}", m);
+    println!("{:x?}", h);
     let last_num = m.len() / 128;
     let mut counter = 0u128;
     let hdash = m.chunks(128).enumerate().fold(h, |hash, chunk| {
+      let last = chunk.0 == last_num;
       let ret = Self::compress(
         hash,
         chunk.1.to_vec(),
-        (chunk.0 as u128) * 128u128,
-        chunk.0 == last_num,
+        if !last {
+          ((chunk.0 + 1) as u128) * 128u128
+        } else {
+          //todo! change
+          3u128
+        },
+        last,
       );
       println!("round is {:x?}", ret);
       ret
@@ -83,6 +89,21 @@ impl Blake2 {
   }
 
   fn compress(h: Vec<u64>, chunk: Vec<u64>, t: u128, last: bool) -> Vec<u64> {
+    /*
+          Round   |  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 |
+        ----------+-------------------------------------------------+
+         SIGMA[0] |  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 |
+         SIGMA[1] | 14 10  4  8  9 15 13  6  1 12  0  2 11  7  5  3 |
+         SIGMA[2] | 11  8 12  0  5  2 15 13 10 14  3  6  7  1  9  4 |
+         SIGMA[3] |  7  9  3  1 13 12 11 14  2  6  5 10  4  0 15  8 |
+         SIGMA[4] |  9  0  5  7  2  4 10 15 14  1 11 12  6  8  3 13 |
+         SIGMA[5] |  2 12  6 10  0 11  8  3  4 13  7  5 15 14  1  9 |
+         SIGMA[6] | 12  5  1 15 14 13  4 10  0  7  6  3  9  2  8 11 |
+         SIGMA[7] | 13 11  7 14 12  1  3  9  5  0 15  4  8  6  2 10 |
+         SIGMA[8] |  6 15 14  9 11  3  0  8 12  2 13  7  1  4 10  5 |
+         SIGMA[9] | 10  2  8  4  7  6  1  5 15 11  9 14  3 12 13  0 |
+        ----------+-------------------------------------------------+
+    */
     const SIGMA: [usize; 160] = [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0,
       2, 11, 7, 5, 3, 11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4, 7, 9, 3, 1, 13, 12, 11,
@@ -94,6 +115,12 @@ impl Blake2 {
     let mut v: Vec<u64> = h.clone();
     v.extend(Self::IV);
 
+    println!(
+      "compress t is {:?} hi {} low {}",
+      t,
+      t >> 64,
+      u64::try_from(t).ok().unwrap()
+    );
     v[12] ^= u64::try_from(t).ok().unwrap();
     v[13] ^= u64::try_from(t >> 64).ok().unwrap();
 
@@ -113,7 +140,7 @@ impl Blake2 {
       |      |   v := G( v, 2, 7,  8, 13, m[s[12]], m[s[13]] )
       |      |   v := G( v, 3, 4,  9, 14, m[s[14]], m[s[15]] )
     */
-    for i in 0..11 {
+    for i in 0..13 {
       println!("v {} is {:x?}", i, v);
       let imod = (i % 10) * 16;
       let s = SIGMA[imod..(imod + 16)].to_vec();
@@ -133,14 +160,16 @@ impl Blake2 {
       (v[2], v[7], v[8], v[13]) = Blake2::g(v[2], v[7], v[8], v[13], m[s[12]], m[s[13]]);
       (v[3], v[4], v[9], v[14]) = Blake2::g(v[3], v[4], v[9], v[14], m[s[14]], m[s[15]]);
     }
-    h.iter()
-      .enumerate()
-      .map(|(i, x)| x ^ v[i] ^ v[i + 8])
-      .collect::<Vec<u64>>()
+    (0..8).map(|i| h[i] ^ v[i] ^ v[i + 8]).collect()
   }
 
-  fn g(mut a: u64, mut b: u64, mut c: u64, mut d: u64, x: u64, y: u64) -> (u64, u64, u64, u64) {
+  fn g(a: u64, b: u64, c: u64, d: u64, x: u64, y: u64) -> (u64, u64, u64, u64) {
     //let rotate = |x : u64,n : usize|{(x >> n) | (x << (64 - n))};
+    let mut a = a;
+    let mut b = b;
+    let mut c = c;
+    let mut d = d;
+
     a = a.wrapping_add(b).wrapping_add(x);
     d = (d ^ a).rotate_right(32);
     //println!("{:064b}", d);
@@ -166,23 +195,23 @@ mod test {
 
   #[test]
   fn g_test() {
-    let a = 0u64;
-    let b = 1u64;
-    let c = 2u64;
-    let d = 3u64;
-    let x = 4u64;
-    let y = 5u64;
-    let ret = Blake2::g(a, b, c, d, x, y);
-    println!("{:?}", ret);
+    // let a = 0u64;
+    // let b = 1u64;
+    // let c = 2u64;
+    // let d = 3u64;
+    // let x = 4u64;
+    // let y = 5u64;
+    // let ret = Blake2::g(a, b, c, d, x, y);
+    // println!("{:?}", ret);
   }
   #[test]
   fn f_test() {
-    let h: Vec<u64> = vec![0; 8];
-    let chunk: Vec<u64> = vec![0; 16];
-    let t: u128 = 0u128;
-    let last = false;
-    let v = Blake2::compress(h, chunk, t, last);
-    println!("v is {:x?}", v);
+    // let h: Vec<u64> = vec![0; 8];
+    // let chunk: Vec<u64> = vec![0; 16];
+    // let t: u128 = 0u128;
+    // let last = false;
+    // let v = Blake2::compress(h, chunk, t, last);
+    // println!("v is {:x?}", v);
   }
 
   #[test]
