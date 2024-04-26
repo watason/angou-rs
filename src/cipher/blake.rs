@@ -28,9 +28,17 @@ impl Blake2 {
 
   pub fn hash(&self, m: Vec<u8>, nn: u8, key: Key) -> Vec<u64> {
     let m = m
-      .chunks(128)
-      .map(|x| u64::from_le_bytes(x.try_into().expect("hash message error")))
+      .chunks(8)
+      .map(|x| {
+        let mut ret = 0u64;
+        for x in x.iter().enumerate() {
+          ret ^= (*x.1 as u64) << (8u64 * x.0 as u64)
+        }
+        println!(" map num is {:x?}", ret);
+        ret
+      })
       .collect::<Vec<u64>>();
+    println!("le message is {:?}", m);
     let message_len: u128 = m.len() as u128;
     let key = key;
     let kk = key.h.len() as u64;
@@ -54,12 +62,14 @@ impl Blake2 {
       .chunks(128)
       .enumerate()
       .flat_map(|chunk| {
-        Self::compress(
+        let ret = Self::compress(
           h.clone(),
           chunk.1.to_vec(),
           (chunk.0 as u128) * 16u128,
           false,
-        )
+        );
+        println!("round is {:x?}", ret);
+        ret
       })
       .collect::<Vec<u64>>();
     // while cbyte_remain > 128u128 {
@@ -75,7 +85,7 @@ impl Blake2 {
 
     //h = Self::compress(h, chunk, cbyte_compress, true);
 
-    hdash[0..(nn as usize)].to_vec()
+    hdash
   }
 
   fn compress(h: Vec<u64>, chunk: Vec<u64>, t: u128, last: bool) -> Vec<u64> {
@@ -185,9 +195,12 @@ mod test {
   fn blake2b_test() {
     let blake: Blake2 = Blake2::new();
     let key: Key = Key { h: Vec::new() };
-    let m: Vec<u8> = Vec::new();
+    let mut m: Vec<u8> = vec![0; 128];
+    m[0] = 0x61;
+    m[1] = 0x62;
+    m[2] = 0x63;
     let nn = 3;
     let ret = blake.hash(m, nn, key);
-    println!("{:?}", ret);
+    println!("hash is {:x?}", ret);
   }
 }
