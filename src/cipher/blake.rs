@@ -52,26 +52,20 @@ impl Blake2 {
     //  h[0] = h[0] ^ 0x0101kknn
     //  h[0] := h[0] ^ 0x01010000 ^ (kk << 8) ^ nn
     h[0] = h[0] ^ 0x01010000u64 ^ kk.wrapping_shl(8) ^ nn;
-    if kk > 0 {
-      //m.extend(padding(key, 128));
-      cbyte_remain += 128;
-    }
 
     println!("{:?}", m);
-    let hdash = m
-      .chunks(128)
-      .enumerate()
-      .flat_map(|chunk| {
-        let ret = Self::compress(
-          h.clone(),
-          chunk.1.to_vec(),
-          (chunk.0 as u128) * 16u128,
-          false,
-        );
-        println!("round is {:x?}", ret);
-        ret
-      })
-      .collect::<Vec<u64>>();
+    let last_num = m.len() / 128;
+    let mut counter = 0u128;
+    let hdash = m.chunks(128).enumerate().fold(h, |hash, chunk| {
+      let ret = Self::compress(
+        hash,
+        chunk.1.to_vec(),
+        (chunk.0 as u128) * 128u128,
+        chunk.0 == last_num,
+      );
+      println!("round is {:x?}", ret);
+      ret
+    });
     // while cbyte_remain > 128u128 {
     //   let chunk = &m[cbyte_compress..(cbyte_compress + 128)].into();
     //   cbyte_compress += 128;
@@ -120,6 +114,7 @@ impl Blake2 {
       |      |   v := G( v, 3, 4,  9, 14, m[s[14]], m[s[15]] )
     */
     for i in 0..11 {
+      println!("v {} is {:x?}", i, v);
       let imod = (i % 10) * 16;
       let s = SIGMA[imod..(imod + 16)].to_vec();
 
@@ -138,7 +133,6 @@ impl Blake2 {
       (v[2], v[7], v[8], v[13]) = Blake2::g(v[2], v[7], v[8], v[13], m[s[12]], m[s[13]]);
       (v[3], v[4], v[9], v[14]) = Blake2::g(v[3], v[4], v[9], v[14], m[s[14]], m[s[15]]);
     }
-    println!("v is {:x?}", v);
     h.iter()
       .enumerate()
       .map(|(i, x)| x ^ v[i] ^ v[i + 8])
@@ -199,7 +193,7 @@ mod test {
     m[0] = 0x61;
     m[1] = 0x62;
     m[2] = 0x63;
-    let nn = 3;
+    let nn = 64;
     let ret = blake.hash(m, nn, key);
     println!("hash is {:x?}", ret);
   }
