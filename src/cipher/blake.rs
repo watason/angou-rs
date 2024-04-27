@@ -44,11 +44,10 @@ impl Blake2 {
         for x in x.iter().enumerate() {
           ret ^= (*x.1 as u64) << (8u64 * x.0 as u64)
         }
-        println!(" map num is {:x?}", ret);
         ret
       })
       .collect::<Vec<u64>>();
-    println!("le message is {:?}", m);
+    //println!("le message is {:?}", m);
     let message_len: u128 = m.len() as u128;
     let key = key;
     let kk = key.h.len() as u64;
@@ -112,12 +111,12 @@ impl Blake2 {
     let mut v: Vec<u64> = h.clone();
     v.extend(Self::IV);
 
-    println!(
-      "compress t is {:?} hi {} low {}",
-      t,
-      t >> 64,
-      u64::try_from(t).ok().unwrap()
-    );
+    // println!(
+    //   "compress t is {:?} hi {} low {}",
+    //   t,
+    //   t >> 64,
+    //   u64::try_from(t).ok().unwrap()
+    // );
     v[12] ^= u64::try_from(t).ok().unwrap();
     v[13] ^= u64::try_from(t >> 64).ok().unwrap();
 
@@ -138,7 +137,7 @@ impl Blake2 {
       |      |   v := G( v, 3, 4,  9, 14, m[s[14]], m[s[15]] )
     */
     for i in 0..12 {
-      println!("before v {} is {:x?}", i, v);
+      //println!("before v {} is {:x?}", i, v);
       let imod = (i % 10) * 16;
       let s = SIGMA[imod..(imod + 16)].to_vec();
 
@@ -157,7 +156,7 @@ impl Blake2 {
       (v[2], v[7], v[8], v[13]) = Blake2::g(v[2], v[7], v[8], v[13], m[s[12]], m[s[13]]);
       (v[3], v[4], v[9], v[14]) = Blake2::g(v[3], v[4], v[9], v[14], m[s[14]], m[s[15]]);
 
-      println!("after v {} is {:x?}", i, v);
+      //println!("after v {} is {:x?}", i, v);
     }
     (0..8).map(|i| h[i] ^ v[i] ^ v[i + 8]).collect()
   }
@@ -190,6 +189,8 @@ impl Blake2 {
 
 #[cfg(test)]
 mod test {
+  use core::hash;
+
   use super::*;
 
   #[test]
@@ -215,6 +216,20 @@ mod test {
 
   #[test]
   fn blake2b_test() {
+    /* hash = BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
+              4C 21 2F 14 68 5A C4 B7 4B 12 BB 6F DB FF A2 D1
+              7D 87 C5 39 2A AB 79 2D C2 52 D5 DE 45 33 CC 95
+              18 D3 8A A8 DB F1 92 5A B9 23 86 ED D4 00 99 23
+       text = "abc"
+       blake2b
+    */
+    let hash_ = "BA 80 A5 3F 98 1C 4D 0D 6A 27 97 B6 9F 12 F6 E9
+                 4C 21 2F 14 68 5A C4 B7 4B 12 BB 6F DB FF A2 D1 
+                 7D 87 C5 39 2A AB 79 2D C2 52 D5 DE 45 33 CC 95 
+                 18 D3 8A A8 DB F1 92 5A B9 23 86 ED D4 00 99 23"
+      .split_whitespace()
+      .flat_map(|x| hex::decode(x).expect("test blake2b answer error"))
+      .collect::<Vec<u8>>();
     let blake: Blake2 = Blake2::new();
     let key: Key = Key { h: Vec::new() };
     let mut m: Vec<u8> = vec![0; 3];
@@ -223,16 +238,24 @@ mod test {
     m[2] = 0x63;
     let nn = 64;
     let ret = blake.hash(m, nn, key);
-    println!("hash is {:02x?}", ret);
+    //println!("hash is {:02x?}", ret);
+    assert_eq!(hash_, ret);
   }
   #[test]
   fn blake2b_test2() {
+    /*
+    hash = A8ADD4BDDDFD93E4877D2746E62817B116364A1FA7BC148D95090BC7333B3673F82401CF7AA2E4CB1ECD90296E3F14CB5413F8ED77BE73045B13914CDCD6A918
+    text = "The quick brown fox jumps over the lazy dog"
+    blake2b
+     */
+    let hash_ = hex::decode("A8ADD4BDDDFD93E4877D2746E62817B116364A1FA7BC148D95090BC7333B3673F82401CF7AA2E4CB1ECD90296E3F14CB5413F8ED77BE73045B13914CDCD6A918").expect("test2 blake2b answer error");
     let blake = Blake2::new();
     let key: Key = Key { h: Vec::new() };
     let str: String = "The quick brown fox jumps over the lazy dog".to_string();
     let m: Vec<u8> = str.as_bytes().to_vec();
     let nn = 64;
     let ret = blake.hash(m, nn, key);
-    println!("hash test2 is {:02x?}", ret);
+    //println!("hash test2 is {:02x?}", ret);
+    assert_eq!(ret, hash_);
   }
 }
