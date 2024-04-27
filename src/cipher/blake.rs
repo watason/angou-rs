@@ -195,6 +195,16 @@ mod test {
 
   #[test]
   fn g_test() {
+    /* (a,b,c,d) = g(a,b,c,d,x,y) = 3298534884874, 870327276700175364, 435160339815202818, 435160314045399040
+       input (a,b,c,d,x,y) = (0,1,2,3,4,5)
+       g function test
+    */
+    let answer = (
+      3298534884874,
+      870327276700175364,
+      435160339815202818,
+      435160314045399040,
+    );
     let a = 0u64;
     let b = 1u64;
     let c = 2u64;
@@ -202,16 +212,36 @@ mod test {
     let x = 4u64;
     let y = 5u64;
     let ret = Blake2::g(a, b, c, d, x, y);
-    println!("{:?}", ret);
+    //println!("{:?}", ret);
+    assert_eq!(answer, ret);
   }
   #[test]
   fn f_test() {
+    /*
+    f() = 6a09e667f2bdc948, bb67ae8584caa73b, 3c6ef372fe94f82b, a54ff53a5f1d36f1, 510e527fade682d1, 9b05688c2b3e6c1f, 1f83d9abfb41bd6b, 5be0cd19137e2179
+    h = [0;8]
+    chunk = [0;16]
+    t = 0
+    last = false
+
+    */
+    let answer: Vec<u64> = vec![
+      0x4d3f506019115ac7,
+      0x2fa2733d57dc0ab8,
+      0xd1e1c1129f845613,
+      0x65061dc9c8e902ac,
+      0x8a5c682f464ae8ce,
+      0x3d9eb972a409d768,
+      0x61d9c25d696ae005,
+      0xee2e6936bda0ebc9,
+    ];
     let h: Vec<u64> = vec![0; 8];
     let chunk: Vec<u64> = vec![0; 16];
     let t: u128 = 0u128;
     let last = false;
     let v = Blake2::compress(h, chunk, t, last);
-    println!("v is {:x?}", v);
+    //println!("test f v is {:x?}", v);
+    assert_eq!(answer, v);
   }
 
   #[test]
