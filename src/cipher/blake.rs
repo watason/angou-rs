@@ -27,6 +27,16 @@ impl Blake2 {
   }
 
   pub fn hash(&self, m: Vec<u8>, nn: u8, key: Key) -> Vec<u8> {
+    let padding = |x: Vec<u8>| {
+      let mut ret = x;
+      let diff = 128 - ret.len() % 128;
+      for i in 0..diff {
+        ret.push(0);
+      }
+      ret
+    };
+    let ll = m.len() % 128;
+    let m = padding(m);
     let m = m
       .chunks(8)
       .map(|x| {
@@ -55,7 +65,6 @@ impl Blake2 {
 
     println!("{:x?}", h);
     let last_num = m.len() / 128;
-    let mut counter = 0u128;
     let hdash = m.chunks(128).enumerate().fold(h, |hash, chunk| {
       let last = chunk.0 == last_num;
       let ret = Self::compress(
@@ -65,7 +74,7 @@ impl Blake2 {
           ((chunk.0 + 1) as u128) * 128u128
         } else {
           //todo! change
-          3u128
+          ll as u128
         },
         last,
       );
@@ -219,12 +228,22 @@ mod test {
   fn blake2b_test() {
     let blake: Blake2 = Blake2::new();
     let key: Key = Key { h: Vec::new() };
-    let mut m: Vec<u8> = vec![0; 128];
+    let mut m: Vec<u8> = vec![0; 3];
     m[0] = 0x61;
     m[1] = 0x62;
     m[2] = 0x63;
     let nn = 64;
     let ret = blake.hash(m, nn, key);
     println!("hash is {:02x?}", ret);
+  }
+  #[test]
+  fn blake2b_test2() {
+    let blake = Blake2::new();
+    let key: Key = Key { h: Vec::new() };
+    let str: String = "The quick brown fox jumps over the lazy dog".to_string();
+    let mut m: Vec<u8> = str.as_bytes().to_vec();
+    let nn = 64;
+    let ret = blake.hash(m, nn, key);
+    println!("hash test2 is {:02x?}", ret);
   }
 }
