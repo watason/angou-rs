@@ -80,19 +80,8 @@ impl Blake2 {
       );
       ret
     });
-    // while cbyte_remain > 128u128 {
-    //   let chunk = &m[cbyte_compress..(cbyte_compress + 128)].into();
-    //   cbyte_compress += 128;
-    //   cbyte_remain -= 128;
-    //   h = Self::compress(h, chunk, cbyte_compress, false);
-    // }
 
-    // let chunk = &m[cbyte_compress..(cbyte_compress + 128)].into();
-    // cbyte_compress += 128;
-    // cbyte_remain -= 128;
-
-    //h = Self::compress(h, chunk, cbyte_compress, true);
-
+    //u64 to le bytes
     hdash.into_iter().flat_map(|x| x.to_le_bytes()).collect()
   }
 
@@ -205,23 +194,23 @@ mod test {
 
   #[test]
   fn g_test() {
-    // let a = 0u64;
-    // let b = 1u64;
-    // let c = 2u64;
-    // let d = 3u64;
-    // let x = 4u64;
-    // let y = 5u64;
-    // let ret = Blake2::g(a, b, c, d, x, y);
-    // println!("{:?}", ret);
+    let a = 0u64;
+    let b = 1u64;
+    let c = 2u64;
+    let d = 3u64;
+    let x = 4u64;
+    let y = 5u64;
+    let ret = Blake2::g(a, b, c, d, x, y);
+    println!("{:?}", ret);
   }
   #[test]
   fn f_test() {
-    // let h: Vec<u64> = vec![0; 8];
-    // let chunk: Vec<u64> = vec![0; 16];
-    // let t: u128 = 0u128;
-    // let last = false;
-    // let v = Blake2::compress(h, chunk, t, last);
-    // println!("v is {:x?}", v);
+    let h: Vec<u64> = vec![0; 8];
+    let chunk: Vec<u64> = vec![0; 16];
+    let t: u128 = 0u128;
+    let last = false;
+    let v = Blake2::compress(h, chunk, t, last);
+    println!("v is {:x?}", v);
   }
 
   #[test]
@@ -241,7 +230,7 @@ mod test {
     let blake = Blake2::new();
     let key: Key = Key { h: Vec::new() };
     let str: String = "The quick brown fox jumps over the lazy dog".to_string();
-    let mut m: Vec<u8> = str.as_bytes().to_vec();
+    let m: Vec<u8> = str.as_bytes().to_vec();
     let nn = 64;
     let ret = blake.hash(m, nn, key);
     println!("hash test2 is {:02x?}", ret);
