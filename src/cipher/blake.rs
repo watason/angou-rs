@@ -7,7 +7,7 @@ struct Blake2 {
 
 #[derive(Debug, Default, Clone)]
 struct Key {
-  h: Vec<u64>,
+  h: Vec<u8>,
 }
 impl Blake2 {
   //IV
@@ -27,6 +27,9 @@ impl Blake2 {
   }
 
   pub fn hash(&self, m: Vec<u8>, nn: u8, key: Key) -> Vec<u8> {
+    let key = key;
+    let kk = key.h.len() as u64;
+    let nn: u64 = nn.into();
     let padding = |x: Vec<u8>| {
       let mut ret = x;
       let diff = 128 - ret.len() % 128;
@@ -35,27 +38,35 @@ impl Blake2 {
       }
       ret
     };
+
+    let le_to_u64 = |x: &[u8]| {
+      let mut ret = 0u64;
+      for x in x.iter().enumerate() {
+        ret ^= (*x.1 as u64) << (8u64 * x.0 as u64)
+      }
+      ret
+    };
+
+    //message block
     let ll = m.len() % 128;
     let m = padding(m);
-    let m = m
-      .chunks(8)
-      .map(|x| {
-        let mut ret = 0u64;
-        for x in x.iter().enumerate() {
-          ret ^= (*x.1 as u64) << (8u64 * x.0 as u64)
-        }
-        ret
-      })
-      .collect::<Vec<u64>>();
+    let m = m.chunks(8).map(le_to_u64).collect::<Vec<u64>>();
+
+    //key block (option)
+    let key_block = if kk > 0 {
+      padding(key.h)
+        .chunks(8)
+        .map(le_to_u64)
+        .collect::<Vec<u64>>()
+    } else {
+      Vec::new()
+    };
+
+    //concat
+    let m = [key_block, m].concat();
     //println!("le message is {:?}", m);
-    let message_len: u128 = m.len() as u128;
-    let key = key;
-    let kk = key.h.len() as u64;
-    let nn: u64 = nn.into();
 
     let mut h = Self::IV.to_vec();
-    let mut cbyte_compress: u128 = 0;
-    let mut cbyte_remain = message_len;
 
     // Parameter block p[0]
     //  h[0] = h[0] ^ 0x0101kknn
@@ -286,6 +297,28 @@ mod test {
     let nn = 64;
     let ret = blake.hash(m, nn, key);
     //println!("hash test2 is {:02x?}", ret);
+    assert_eq!(ret, hash_);
+  }
+
+  #[test]
+  fn blake2b_key_test() {
+    /* output= 17de517e1278d00ac7a6bcf048881aa9a972e6b5cef843d3c61d3e252068a2f526c999f45cd96b172509d085b59170e388f845750c812781df582be3fc4a1972
+       text = "abc"
+       key  = "abc"
+    */
+    let hash_ = hex::decode("17de517e1278d00ac7a6bcf048881aa9a972e6b5cef843d3c61d3e252068a2f526c999f45cd96b172509d085b59170e388f845750c812781df582be3fc4a1972").expect("key test error");
+    let blake = Blake2::new();
+    let mut h = Vec::new();
+    h.push(61);
+    h.push(62);
+    h.push(63);
+    let key = Key { h: h };
+    let mut m: Vec<u8> = vec![0; 3];
+    m[0] = 0x61;
+    m[1] = 0x62;
+    m[2] = 0x63;
+    let nn = 64;
+    let ret = blake.hash(m, nn, key);
     assert_eq!(ret, hash_);
   }
 }
