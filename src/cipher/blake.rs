@@ -26,7 +26,7 @@ impl Blake2 {
     Self { h: Self::IV }
   }
 
-  pub fn hash(&self, m: Vec<u8>, nn: u8, key: Key) -> Vec<u64> {
+  pub fn hash(&self, m: Vec<u8>, nn: u8, key: Key) -> Vec<u8> {
     let m = m
       .chunks(8)
       .map(|x| {
@@ -69,7 +69,6 @@ impl Blake2 {
         },
         last,
       );
-      println!("round is {:x?}", ret);
       ret
     });
     // while cbyte_remain > 128u128 {
@@ -85,7 +84,7 @@ impl Blake2 {
 
     //h = Self::compress(h, chunk, cbyte_compress, true);
 
-    hdash
+    hdash.into_iter().flat_map(|x| x.to_le_bytes()).collect()
   }
 
   fn compress(h: Vec<u64>, chunk: Vec<u64>, t: u128, last: bool) -> Vec<u64> {
@@ -140,8 +139,8 @@ impl Blake2 {
       |      |   v := G( v, 2, 7,  8, 13, m[s[12]], m[s[13]] )
       |      |   v := G( v, 3, 4,  9, 14, m[s[14]], m[s[15]] )
     */
-    for i in 0..13 {
-      println!("v {} is {:x?}", i, v);
+    for i in 0..12 {
+      println!("before v {} is {:x?}", i, v);
       let imod = (i % 10) * 16;
       let s = SIGMA[imod..(imod + 16)].to_vec();
 
@@ -159,6 +158,8 @@ impl Blake2 {
       (v[1], v[6], v[11], v[12]) = Blake2::g(v[1], v[6], v[11], v[12], m[s[10]], m[s[11]]);
       (v[2], v[7], v[8], v[13]) = Blake2::g(v[2], v[7], v[8], v[13], m[s[12]], m[s[13]]);
       (v[3], v[4], v[9], v[14]) = Blake2::g(v[3], v[4], v[9], v[14], m[s[14]], m[s[15]]);
+
+      println!("after v {} is {:x?}", i, v);
     }
     (0..8).map(|i| h[i] ^ v[i] ^ v[i + 8]).collect()
   }
@@ -224,6 +225,6 @@ mod test {
     m[2] = 0x63;
     let nn = 64;
     let ret = blake.hash(m, nn, key);
-    println!("hash is {:x?}", ret);
+    println!("hash is {:02x?}", ret);
   }
 }
