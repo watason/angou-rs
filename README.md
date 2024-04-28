@@ -7,25 +7,25 @@ Basecally, i will to write Rust or C++.
 Here is the list of planned implements
 
 - hash function
-    - sha2
-    - sha3
-    - blake2
-    - blake3
+    - [ ] sha2
+    - [ ] sha3
+    - [x] blake2
+    - [ ] blake3
 - password hash function
-    - Argon2
-    - bcrypto
-    - pbkdf2
+    - [ ] Argon2
+    - [ ] bcrypto
+    - [ ] pbkdf2
 - Message authentication code
-    - HMAC
-    - CMAC
+    - [ ] HMAC
+    - [ ] CMAC
 - symmetric key crypto
-    - AES
-    - camellia
+    - [x] AES
+    - [ ] camellia
 - public key crypto
-    - RSA
-    - ECDSA
+    - [ ] RSA
+    - [ ] ECDSA
 - multi party computation
 - fhe
 - Pseudo random numbers generator
-    - chacha20
-    - salsa20
+    - [ ] chacha20
+    - [ ] salsa20
