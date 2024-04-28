@@ -9,5 +9,4 @@ use crate::domain::value_object;
 use crate::domain::value_object::aes_type::*;
 
 fn main() {
-
 }

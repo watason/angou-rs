@@ -1,7 +1,19 @@
 {
     "workbench.panel.defaultLocation": "right",
-    "rust-analyzer.checkOnSave": false,
+    "rust-analyzer.checkOnSave": true,
     "rust-analyzer.linkedProjects": [
         "./Cargo.toml"
-    ]
+    ],
+    "rust-analyzer.rustfmt.extraArgs": [
+        "--config",
+        "tab_spaces=2"
+    ],
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+    },
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
 }
