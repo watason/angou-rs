@@ -8,7 +8,7 @@ impl ChaCha {
   fn new() -> Self {
     Self { state: [0; 16] }
   }
-  fn quarter_round(state: &[u32]) -> [u32; 4] {
+  fn quarter_round(a: u32, b: u32, c: u32, d: u32) -> [u32; 4] {
     /*
     1.  a += b; d ^= a; d <<<= 16;
     2.  c += d; b ^= c; b <<<= 12;
@@ -16,13 +16,10 @@ impl ChaCha {
     4.  c += d; b ^= c; b <<<= 7;
     */
     //let rot32 = |x: u32, n: u32| x << n | x >> (32 - n);
-    let mut a = state[0];
-    let mut b = state[1];
-    let mut c = state[2];
-    let mut d = state[3];
-    if state.len() != 4 {
-      panic!("error round state length is not 4");
-    }
+    let mut a = a;
+    let mut b = b;
+    let mut c = c;
+    let mut d = d;
     a = a.wrapping_add(b);
     d ^= a;
     d = d.rotate_left(16);
@@ -124,7 +121,7 @@ mod test {
 
     let state: [u32; 4] = [0x11111111, 0x01020304, 0x9b8d6f43, 0x01234567];
     let ans: [u32; 4] = [0xea2a92f4, 0xcb1cf8ce, 0x4581472e, 0x5881c4bb];
-    let state = ChaCha::quarter_round(&state);
+    let state = ChaCha::quarter_round(state[0], state[1], state[2], state[3]);
     assert_eq!(state, ans);
   }
 
