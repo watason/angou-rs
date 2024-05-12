@@ -126,6 +126,12 @@ impl ChaCha {
     state
   }
 
+  pub fn serialize(state: &[u32]) -> Vec<u8> {
+    state
+      .iter()
+      .flat_map(|x| x.to_le_bytes())
+      .collect::<Vec<u8>>()
+  }
   fn encode() {}
 }
 #[cfg(test)]
@@ -249,5 +255,6 @@ mod test {
     let chacha = ChaCha::block(&key, counter, &nonce);
     println!("block vec is {:x?}", chacha);
     assert_eq!(ans, chacha);
+    println!("serialize block is {:x?}", ChaCha::serialize(&chacha));
   }
 }
