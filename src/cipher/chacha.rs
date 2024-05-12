@@ -205,9 +205,16 @@ mod test {
      */
     let le_to_u32 = |x: &[u8]| {
       let mut ret = 0u32;
-      println!("le is {:x?} ", x);
+      //println!("le is {:x?} ", x);
       for x in x.iter().enumerate() {
         ret ^= (*x.1 as u32) << (8u32 * x.0 as u32);
+      }
+      ret
+    };
+    let be_to_u32 = |x: &[u8]| {
+      let mut ret = 0u32;
+      for x in x.iter().enumerate() {
+        ret += (*x.1 as u32) << (8u32 * (4 - x.0 as u32));
       }
       ret
     };
@@ -223,16 +230,24 @@ mod test {
       .map(le_to_u32)
       .collect::<Vec<u32>>();
     let counter = 1u32;
-    let ans = "e4e7f110  15593bd1  1fdd0f50  c47120a3
-        c7f4d1c7  0368c033  9aaa2204  4e6cd4c3
-        466482d2  09aa9f07  05d7c214  a2028bd9
-        d19c12b5  b94e16de  e883d0cb  4e3c50a2"
-      .split_whitespace();
+    let ans: Vec<u32> = "e4e7f110  15593bd1  1fdd0f50  c47120a3
+            c7f4d1c7  0368c033  9aaa2204  4e6cd4c3
+            466482d2  09aa9f07  05d7c214  a2028bd9
+            d19c12b5  b94e16de  e883d0cb  4e3c50a2"
+      .split_whitespace()
+      .map(|x| {
+        let x = hex::decode(x).expect("ans decode fail");
+        let ret = u32::from_be_bytes(x.try_into().unwrap());
+        ret
+      })
+      .collect();
+    //println!("ans is {:x?}", ans);
     println!(
       "key is {:x?} , nonce is {:x?} , counter is {}",
       key, nonce, counter
     );
     let chacha = ChaCha::block(&key, counter, &nonce);
     println!("block vec is {:x?}", chacha);
+    assert_eq!(ans, chacha);
   }
 }
