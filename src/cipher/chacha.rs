@@ -8,7 +8,7 @@ impl ChaCha {
   fn new() -> Self {
     Self { state: [0; 16] }
   }
-  fn quarter_round(a: u32, b: u32, c: u32, d: u32) -> [u32; 4] {
+  fn quarter_round(state: &mut [u32], i: usize, j: usize, k: usize, l: usize) {
     /*
     1.  a += b; d ^= a; d <<<= 16;
     2.  c += d; b ^= c; b <<<= 12;
@@ -16,10 +16,10 @@ impl ChaCha {
     4.  c += d; b ^= c; b <<<= 7;
     */
     //let rot32 = |x: u32, n: u32| x << n | x >> (32 - n);
-    let mut a = a;
-    let mut b = b;
-    let mut c = c;
-    let mut d = d;
+    let mut a = state[i];
+    let mut b = state[j];
+    let mut c = state[k];
+    let mut d = state[l];
     a = a.wrapping_add(b);
     d ^= a;
     d = d.rotate_left(16);
@@ -32,7 +32,10 @@ impl ChaCha {
     c = c.wrapping_add(d);
     b ^= c;
     b = b.rotate_left(7);
-    [a, b, c, d]
+    state[i] = a;
+    state[j] = b;
+    state[k] = c;
+    state[l] = d;
   }
 
   fn init(key: &[u32], counter: u32, nonce: &[u32]) -> Block {
@@ -86,14 +89,44 @@ impl ChaCha {
   }
 
   fn block(key: &[u32], counter: u32, nonce: &[u32]) -> Block {
-    let state = ChaCha::init(key, counter, nonce);
-    let inner_block = || {
-      let mut block: Block = [0; 16];
-      block
+    let init = ChaCha::init(key, counter, nonce);
+    let mut state = init;
+    let inner_block = |state: &mut Block| {
+      /*
+       inner_block (state):
+        Qround(state, 0, 4, 8,12)
+        Qround(state, 1, 5, 9,13)
+        Qround(state, 2, 6,10,14)
+        Qround(state, 3, 7,11,15)
+        Qround(state, 0, 5,10,15)
+        Qround(state, 1, 6,11,12)
+        Qround(state, 2, 7, 8,13)
+        Qround(state, 3, 4, 9,14)
+        end
+      */
+      //
+      ChaCha::quarter_round(state, 0, 4, 8, 12);
+      ChaCha::quarter_round(state, 1, 5, 9, 13);
+      ChaCha::quarter_round(state, 2, 6, 10, 14);
+      ChaCha::quarter_round(state, 3, 7, 11, 15);
+
+      ChaCha::quarter_round(state, 0, 5, 10, 15);
+      ChaCha::quarter_round(state, 1, 6, 11, 12);
+      ChaCha::quarter_round(state, 2, 7, 8, 13);
+      ChaCha::quarter_round(state, 3, 4, 9, 14);
     };
 
+    for i in 0..10 {
+      inner_block(&mut state);
+    }
+    state
+      .iter_mut()
+      .enumerate()
+      .for_each(|(i, block)| *block = (*block).wrapping_add(init[i]));
     state
   }
+
+  fn encode() {}
 }
 #[cfg(test)]
 mod test {
@@ -119,9 +152,9 @@ mod test {
     o  d = 0x5881c4bb
     */
 
-    let state: [u32; 4] = [0x11111111, 0x01020304, 0x9b8d6f43, 0x01234567];
+    let mut state: [u32; 4] = [0x11111111, 0x01020304, 0x9b8d6f43, 0x01234567];
     let ans: [u32; 4] = [0xea2a92f4, 0xcb1cf8ce, 0x4581472e, 0x5881c4bb];
-    let state = ChaCha::quarter_round(state[0], state[1], state[2], state[3]);
+    ChaCha::quarter_round(&mut state, 0, 1, 2, 3);
     assert_eq!(state, ans);
   }
 
@@ -190,11 +223,16 @@ mod test {
       .map(le_to_u32)
       .collect::<Vec<u32>>();
     let counter = 1u32;
+    let ans = "e4e7f110  15593bd1  1fdd0f50  c47120a3
+        c7f4d1c7  0368c033  9aaa2204  4e6cd4c3
+        466482d2  09aa9f07  05d7c214  a2028bd9
+        d19c12b5  b94e16de  e883d0cb  4e3c50a2"
+      .split_whitespace();
     println!(
       "key is {:x?} , nonce is {:x?} , counter is {}",
       key, nonce, counter
     );
-    let chacha = ChaCha::init(&key, counter, &nonce);
-    println!("init vec is {:x?}", chacha);
+    let chacha = ChaCha::block(&key, counter, &nonce);
+    println!("block vec is {:x?}", chacha);
   }
 }
