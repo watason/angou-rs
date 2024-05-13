@@ -428,8 +428,10 @@ mod test {
     let counter = 1u32;
     let plain_text = b"Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.";
     let ans = hex::decode("6e2e359a2568f98041ba0728dd0d6981e97e7aec1d4360c20a27afccfd9fae0bf91b65c5524733ab8f593dabcd62b3571639d624e65152ab8f530c359f0861d807ca0dbf500d6a6156a38e088a22b65e52bc514d16ccf806818ce91ab77937365af90bbf74a35be6b40b8eedf2785e42874d").expect("stream ans is error");
+    let ans = ans.chunks(4).map(le_to_u32).collect::<Vec<u32>>();
     println!("plain text is {:x?} ", plain_text);
     let encode_text = ChaCha::encode(&key, counter, &nonce, plain_text);
     println!("encode text is {:x?}", ChaCha::serialize(&encode_text));
+    assert_eq!(ans, encode_text);
   }
 }
