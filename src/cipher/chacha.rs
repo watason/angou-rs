@@ -175,6 +175,8 @@ impl ChaCha {
 }
 #[cfg(test)]
 mod test {
+  use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng, ChaChaRng};
+
   use super::*;
 
   #[test]
@@ -437,5 +439,45 @@ mod test {
     let encode_text = ChaCha::encode(&key, counter, &nonce, plain_text);
     println!("encode text is {:x?}", encode_text);
     assert_eq!(ans, encode_text);
+  }
+
+  #[test]
+  fn pseudorandom_test() {
+    use rand::{Rng, SeedableRng};
+    let seed: [u8; 32] = [
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e,
+      0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d,
+      0x1e, 0x1f,
+    ];
+    let mut ans: ChaCha20Rng = SeedableRng::from_seed(seed);
+    let ans = (0..16)
+      .into_iter()
+      .map(|x| ans.gen::<u32>())
+      .collect::<Vec<u32>>();
+    println!("pseudo random answer is {:x?} ", ans);
+    let le_to_u32 = |x: &[u8]| {
+      let mut ret = 0u32;
+      //println!("le is {:x?} ", x);
+      for x in x.iter().enumerate() {
+        ret ^= (*x.1 as u32) << (8u32 * x.0 as u32);
+      }
+      ret
+    };
+    let key = hex::decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
+      .expect("key is invalid")
+      .chunks(4)
+      .map(le_to_u32)
+      .collect::<Vec<u32>>();
+    let nonce = hex::decode(b"000000000000000000000000")
+      .expect("nonce is invalid")
+      .chunks(4)
+      .map(le_to_u32)
+      .collect::<Vec<u32>>();
+    let counter = 0u32;
+
+    let pseudo = ChaCha::block(&key, counter, &nonce);
+    //let pseudo = ChaCha::serialize(&pseudo);
+    println!("pseudo random my chacha is {:x?} ", pseudo);
+    assert_eq!(ans, pseudo);
   }
 }
