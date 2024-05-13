@@ -132,7 +132,7 @@ impl ChaCha {
       .flat_map(|x| x.to_le_bytes())
       .collect::<Vec<u8>>()
   }
-  fn encode(key: &[u32], counter: u32, nonce: &[u32], plain_text: &[u8]) -> Vec<u32> {
+  fn encode(key: &[u32], counter: u32, nonce: &[u32], plain_text: &[u8]) -> Vec<u8> {
     let be_to_u32 = |x: &[u8]| {
       let mut ret = 0u32;
       for x in x.iter().enumerate() {
@@ -154,18 +154,22 @@ impl ChaCha {
       .chunks(64)
       .enumerate()
       .flat_map(|(i, chunk)| {
-        let key_stream = ChaCha::block(key, counter + i as u32, nonce);
+        println!("encrypt chunk size is {}", chunk.len());
+        let key_stream = ChaCha::block(key, counter + i as u32, nonce)
+          .iter()
+          .flat_map(|x| x.to_le_bytes())
+          .collect::<Vec<u8>>();
+        let mut chunk = chunk.clone().to_vec();
         println!("key stream is {:x?}", key_stream);
-        let mut chunk = chunk.chunks(4).map(le_to_u32).collect::<Vec<u32>>();
         println!("chunk {} is {:x?}", i, chunk);
         for (a, b) in chunk.iter_mut().zip(key_stream.iter()) {
-          println!("key to le is {:x?}", b.to_le());
-          *a ^= b.to_le();
+          println!("key to le is {:x?}", b);
+          *a ^= b;
         }
         println!("{} block result is {:x?}", i, chunk);
         chunk
       })
-      .collect::<Vec<u32>>();
+      .collect::<Vec<u8>>();
     encrypt_message
   }
 }
@@ -428,10 +432,10 @@ mod test {
     let counter = 1u32;
     let plain_text = b"Ladies and Gentlemen of the class of '99: If I could offer you only one tip for the future, sunscreen would be it.";
     let ans = hex::decode("6e2e359a2568f98041ba0728dd0d6981e97e7aec1d4360c20a27afccfd9fae0bf91b65c5524733ab8f593dabcd62b3571639d624e65152ab8f530c359f0861d807ca0dbf500d6a6156a38e088a22b65e52bc514d16ccf806818ce91ab77937365af90bbf74a35be6b40b8eedf2785e42874d").expect("stream ans is error");
-    let ans = ans.chunks(4).map(le_to_u32).collect::<Vec<u32>>();
+    //let ans = ans.chunks(4).map(le_to_u32).collect::<Vec<u32>>();
     println!("plain text is {:x?} ", plain_text);
     let encode_text = ChaCha::encode(&key, counter, &nonce, plain_text);
-    println!("encode text is {:x?}", ChaCha::serialize(&encode_text));
+    println!("encode text is {:x?}", encode_text);
     assert_eq!(ans, encode_text);
   }
 }
