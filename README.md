@@ -27,5 +27,5 @@ Here is the list of planned implements
 - multi party computation
 - fhe
 - Pseudo random numbers generator
-    - [ ] chacha20
+    - [x] chacha20
     - [ ] salsa20
