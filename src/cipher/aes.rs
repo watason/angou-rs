@@ -6,7 +6,7 @@ use crate::domain::value_object::aes_gf::aesGF;
 use aes_type::*;
 
 #[derive(Debug,Clone)]
-struct Key{
+pub struct Key{
     value : Vec<u32>,
     bit_type : aes_type::BitType,
     mode : aes_type::Mode
