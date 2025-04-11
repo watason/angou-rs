@@ -16,8 +16,8 @@ fn u128_to_u32_vec(value: u128) -> Vec<u32> {
 #[derive(Debug,Default,Clone)]
 struct Aegis{
   state : Vec<u128>,
-  iv : Vec<u128>,
-  ad : Vec<u128>,
+  iv : u128,
+  ad : Vec<u8>,
   message: Vec<u128>,
   cipher_text : Vec<u128>
 }
@@ -58,27 +58,37 @@ fn with_ad(state : Vec<u128>,ad : Vec<u128>) -> Vec<u128>{
 }
 
 impl Aegis{
-
+  // Fibonacci数列 mod 256の32バイト定数
+  const FIBONACCI_CONSTANT: [u8; 32] = [
+    0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
+    0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
+    0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
+    0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
+  ];
   fn new() -> Self{
     let state = Vec::new();
-    let iv = Vec::new();
-    let ad = Vec::new();
+    let iv : u128 = 0;
+    let ad :Vec<u8> = Vec::new() ;
     let message = Vec::new();
     let cipher_text = Vec::new();
     Self { state: state, iv: iv, ad: ad,message : message,cipher_text:cipher_text}
   }
-  fn init(&mut self,key : Vec<u128>) -> Vec<u128>{
+  fn init(&mut self,key : u128) -> Vec<u128>{
     let const_vec : Vec<u128> = vec![0;2];
     let mut state : Vec<u128> = vec![0;5];
-    state[0] = key[0] ^ self.iv[0];
-    state[1] = const_vec[0];
-    state[2] = const_vec[1];
-    state[3] = key[0] ^ const_vec[0];
-    state[4] = key[0] ^ const_vec[1];
 
-    if !self.ad.is_empty() {
-      state = with_ad(state,self.ad.clone());
-    }
+    let const0 =u128::from_le_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
+    let const1 = u128::from_le_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
+    
+    state[0] = key ^ self.iv;
+    state[1] = const1;
+    state[2] = const0;
+    state[3] = key ^ const0;
+    state[4] = key ^ const1;
+
+    // if !self.ad.is_empty() {
+    //   //state = with_ad(state,self.ad.clone());
+    // }
     self.state = state.clone();
     state.clone()
   }
@@ -146,10 +156,17 @@ mod test{
 
     #[test]
   fn aegis_test(){
-    let state :u128 = 0;
+    let plane_text :u128 = 0;
     let key : u128 = 0;
-    let aes_block = aes_round(state, key);
-    let aegis = Aegis::new();
-    println!("aes round test {:?}",aes_block);
+    let iv :u128 = 0;
+    let state = Vec::new();
+    let message = Vec::new();
+    let cihper = Vec::new();
+    let mut aegis = Aegis{state,iv:iv,ad:Vec::new(),message,cipher_text:cihper};
+
+    let cipher_tex = aegis.init(key.clone());
+
+    println!("aegis initialize test {:?}",cipher_tex);
   }
+  
 }
