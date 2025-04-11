@@ -13,7 +13,9 @@ pub struct Key{
 }
 
 impl Key{
-    
+    pub fn new(value : Vec<u32>,bit_type:aes_type::BitType,mode : aes_type::Mode)->Self{
+        Self { value: value, bit_type: bit_type, mode: mode }
+    }
 }
 type Block = u8;
 type Word = [Block;4];
@@ -48,7 +50,7 @@ impl AES{
         let (sbox,inv) = make_sbox();
         Self { sbox: sbox, inv_sbox: inv}
     }
-    fn key_expansion(&self,key : Key)->Vec<u32>{
+    pub fn key_expansion(&self,key : Key)->Vec<u32>{
         let (nk,nr) = key.bit_type.nk_nr();
         let shift_word = |x : u32|x<<8 | x >> 24;
         let sub_word = |x:u32|{
