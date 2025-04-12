@@ -23,7 +23,7 @@ struct Aegis{
 }
 
   fn aes_round(state: u128,key : u128)->u128{
-    let mut state = state.to_le_bytes().to_vec();
+    let mut state = state.to_be_bytes().to_vec();
     let aes = AES::new();
     let inverse = false;
 
@@ -40,13 +40,14 @@ struct Aegis{
 
     let exkey : Key= Key::new(key.clone(),bit_type.clone(),mode.clone());
     let exkey = aes.key_expansion(exkey);
-
     state = sub_bytes(state,inverse);
     state = shift_row(state, inverse);
     state = mix_column(state, inverse);
     state = add_round_key(state, exkey.clone(), inverse);
 
-    u128::from_le_bytes(state.try_into().unwrap())
+    //println!("aes round state is {:x?} " ,state);
+    let state = u128::from_be_bytes(state.try_into().unwrap());
+    state
   }
 
 fn state_update128(state : Vec<u128>, message : u128) -> Vec<u128>{
@@ -145,7 +146,7 @@ impl Aegis{
     cipher_text
 
   }
-  fn finalize(&mut self) ->Vec<u128>{
+  fn finalize(&mut self) ->u128{
     //3.5.1
     let mut tmp = self.state[2];
     let adlen = self.ad.len() as u128;
@@ -162,7 +163,7 @@ impl Aegis{
     let tag = state.iter().fold(0,|acc,part|acc ^ part);
     self.state = state.clone();
 
-    state
+    tag
   }
   fn dec(&mut self,cipher : Vec<u128>)-> Vec<u128>{
 
@@ -224,10 +225,13 @@ use super::*;
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
     let cipher_text = aegis.enc(plane_text);
-
+    let tag = aegis.finalize();
+    println!("aegis ans test {:x?}",tag);
+    
     let ans :u128 = u128::from_str_radix("951b050fa72b1a2fc16d2e1f01b07d7e",16).unwrap();
     println!("aegis cipher_text test {:x?}",cipher_text);
     println!("aegis ans test {:x?}",ans);
+
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
   }
 
