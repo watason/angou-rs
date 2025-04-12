@@ -93,8 +93,8 @@ impl Aegis{
     //3.2.1
     let mut state : Vec<u128> = self.state.clone();
     let mut m : Vec<u128> = Vec::new();
-    let const0 =u128::from_le_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
-    let const1 = u128::from_le_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
+    let const0 =u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
+    let const1 = u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
     
     println!("const0 const1 is {:x?}   {:x?} ",const0,const1);
     state[0] = key ^ self.iv;
