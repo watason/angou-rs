@@ -1,4 +1,4 @@
-use std::io::Read;
+use std::{io::Read, ops::Index};
 
 use super::aes::{self, add_round_key, mix_column, shift_row, sub_bytes, Key, AES};
 
@@ -52,12 +52,12 @@ struct Aegis{
 
 fn state_update128(state : Vec<u128>, message : u128) -> Vec<u128>{
     let mut ret = state.clone();
-    ret[0] = aes_round(state[4],message);
-    ret[1] = aes_round(state[1],ret[0]);
-    ret[2] = aes_round(state[2],ret[1]);
-    ret[3] = aes_round(state[3],ret[2]);
-    ret[4] = aes_round(state[4],ret[3]);
-    
+    //println!("state update128 is {:x?}  {:x?}",ret,message);
+    ret[0] = aes_round(state[4],state[0] ^ message);
+    ret[1] = aes_round(state[0],state[1]);
+    ret[2] = aes_round(state[1],state[2]);
+    ret[3] = aes_round(state[2],state[3]);
+    ret[4] = aes_round(state[3],state[4]);
     ret
 }
 
@@ -103,6 +103,7 @@ impl Aegis{
     state[3] = key ^ const0;
     state[4] = key ^ const1;
 
+    println!("init state is {:x?}",state);
     // if !self.ad.is_empty() {
     //   //state = with_ad(state,self.ad.clone());
     // }
@@ -115,6 +116,7 @@ impl Aegis{
     //3.2.3
     for mi in m{
       state = state_update128(state, mi);
+      println!("init state m {:?} is state {:x?} ",mi,state);
     }
 
     self.state = state.clone();
@@ -125,15 +127,12 @@ impl Aegis{
     //3.4
     let adlen = (self.ad.len() + 127) / 128;
     let messagelen = plane.len() ;
+    self.message = plane.clone();
     let mut state = self.state.clone();
     let mut cipher_text : Vec<u128> = Vec::new();
 
     println!("eagis enc state is {:?} ",state);
     for i in 0..messagelen{
-      println!("state 2 3 and is {:?} {:?} {:?}",state[2],state[3],state[2]&state[3]);
-      println!("state 1 4 and is {:?} {:?} {:?}",state[1],state[4],state[1]^state[4]);
-      println!("state 1 423 and is {:?} {:?} {:?}",state[1],state[4],state[1]^state[4]^(state[2]&state[3]));
-      println!("state plane 23 and is {:?} {:?} {:?}",plane[i],state[2],plane[i]^state[2]);
       let c = plane[i] ^ state[1] ^ state[4] ^ (state[2] & state[3]);
 
       println!("eagis enc cipher is {:?} ",c);
@@ -141,17 +140,22 @@ impl Aegis{
       state = state_update128(state, plane[i]);
       
     }
-    self.state = state;
+    self.state = state.clone();
     self.cipher_text = cipher_text.clone();
+      
+    println!("eagis enc cipher is {:?} ",self.cipher_text);
+    println!("eagis enc state is {:?} ",self.state);
+    
     cipher_text
 
   }
   fn finalize(&mut self) ->u128{
     //3.5.1
-    let mut tmp = self.state[2];
-    let adlen = self.ad.len() as u128;
-    let messagelen = self.message.len() as u128;
-    tmp ^= adlen | messagelen;
+    let mut tmp = self.state[3];
+    let adlen = self.ad.len() as u64;
+    let messagelen = self.message.len() as u64;
+    println!("adlen is {:?} , message len is {:?} , or is {:?}",adlen,messagelen,adlen|messagelen);
+    tmp ^= (adlen as u128) << 64 | (messagelen as u128);
 
     //3.5.2
     let mut state = self.state.clone();
@@ -226,9 +230,10 @@ use super::*;
     println!("aegis cipher state is {:?} ",state);
     let cipher_text = aegis.enc(plane_text);
     let tag = aegis.finalize();
-    println!("aegis ans test {:x?}",tag);
+    println!("aegis cipher tag test {:x?}",tag);
     
     let ans :u128 = u128::from_str_radix("951b050fa72b1a2fc16d2e1f01b07d7e",16).unwrap();
+    let ans_tag = u128::from_str_radix("a7d2a99773249542f422217ee888d5f1", 16).unwrap();
     println!("aegis cipher_text test {:x?}",cipher_text);
     println!("aegis ans test {:x?}",ans);
 
