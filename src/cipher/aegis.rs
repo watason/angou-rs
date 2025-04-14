@@ -17,7 +17,7 @@ fn u128_to_u32_vec(value: u128) -> Vec<u32> {
 struct Aegis{
   state : Vec<u128>,
   iv : u128,
-  ad : Vec<u8>,
+  ad : Vec<u128>,
   message: Vec<u128>,
   cipher_text : Vec<u128>
 }
@@ -62,17 +62,6 @@ fn state_update128(state : Vec<u128>, message : u128) -> Vec<u128>{
 }
 
 
-fn with_ad(state : Vec<u128>,ad : Vec<u128>) -> Vec<u128>{
-    let ad = ad;
-    let mut state = state;
-
-
-    for i in 0..ad.len(){
-      state = state_update128(state, ad[i]);
-    }
-    state
-}
-
 impl Aegis{
   // Fibonacci数列 mod 256の32バイト定数
   const FIBONACCI_CONSTANT: [u8; 32] = [
@@ -84,7 +73,7 @@ impl Aegis{
   fn new() -> Self{
     let state = Vec::new();
     let iv : u128 = 0;
-    let ad :Vec<u8> = Vec::new() ;
+    let ad :Vec<u128> = Vec::new() ;
     let message = Vec::new();
     let cipher_text = Vec::new();
     Self { state: state, iv: iv, ad: ad,message : message,cipher_text:cipher_text}
@@ -103,7 +92,7 @@ impl Aegis{
     state[3] = key ^ const0;
     state[4] = key ^ const1;
 
-    println!("init state is {:x?}",state);
+    //println!("init state is {:x?}",state);
     // if !self.ad.is_empty() {
     //   //state = with_ad(state,self.ad.clone());
     // }
@@ -116,7 +105,6 @@ impl Aegis{
     //3.2.3
     for mi in m{
       state = state_update128(state, mi);
-      println!("init state m {:?} is state {:x?} ",mi,state);
     }
 
     self.state = state.clone();
@@ -135,7 +123,7 @@ impl Aegis{
     for i in 0..messagelen{
       let c = plane[i] ^ state[1] ^ state[4] ^ (state[2] & state[3]);
 
-      println!("eagis enc cipher is {:?} ",c);
+      //println!("eagis enc cipher is {:?} ",c);
       cipher_text.push(c);
       state = state_update128(state, plane[i]);
       
@@ -149,24 +137,41 @@ impl Aegis{
     cipher_text
 
   }
+  
+fn with_ad(&mut self) -> Vec<u128>{
+    let ad = self.ad.clone();
+    let mut state = self.state.clone();
+    let adlen = ad.len();
+
+
+    for i in 0..adlen{
+      state = state_update128(state, ad[i]);
+    }
+    self.state = state.clone();
+    state
+}
   fn finalize(&mut self) ->u128{
     //3.5.1
-    let mut tmp = self.state[3];
     let adlen = self.ad.len() as u64;
     let messagelen = self.message.len() as u64;
-    println!("adlen is {:?} , message len is {:?} , or is {:?}",adlen,messagelen,adlen|messagelen);
-    tmp ^= (adlen as u128) << 64 | (messagelen as u128);
-
-    //3.5.2
     let mut state = self.state.clone();
+
+    println!("adlen is {:?} , message len is {:?} , or is {:?}",adlen,messagelen,adlen|messagelen);
+    let tmp = state[3] ^ ((adlen as u128) << 64 | (messagelen as u128));
+    //3.5.2
     //why 0~6?
-    for i in 0..6{
+    for i in 0..7{
       state = state_update128(state, tmp);
+      println!("finalize state is {:x?}",state);
+      
+      let tag = state.iter().fold(0,|acc,part|acc ^ part);
+      println!("tmp tag is {} {:?} ",i,tag);
     }
     //3.5.3
     let tag = state.iter().fold(0,|acc,part|acc ^ part);
-    self.state = state.clone();
+    self.state = state;
 
+    println!("finalize tag is {:x?} {:?} ",tag,tag);
     tag
   }
   fn dec(&mut self,cipher : Vec<u128>)-> Vec<u128>{
@@ -236,8 +241,51 @@ use super::*;
     let ans_tag = u128::from_str_radix("a7d2a99773249542f422217ee888d5f1", 16).unwrap();
     println!("aegis cipher_text test {:x?}",cipher_text);
     println!("aegis ans test {:x?}",ans);
+    println!("aegis anstag test {:?}",ans_tag);
+
 
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
+    //assert_eq!(ans_tag,tag,"aegis cipher tag test error");
+    
+
   }
+
+//associated data: 128 bits plaintext: 128 bits
+// K128 = 00000000000000000000000000000000
+// IV128 = 00000000000000000000000000000000
+// assoc. data = 00000000000000000000000000000000
+// plaintext = 00000000000000000000000000000000
+// ciphertext = 10b0dee65a97d751205c128a992473a1
+// tag = 46dcb9ee93c46cf13731d41b9646c131
+  //     #[test]
+  // fn aegis_cipher_test(){
+  //   let mut plane_text :Vec<u128> = Vec::new();
+  //   plane_text.push(0);
+  //   let key : u128 = 0;
+  //   let iv :u128 = 0;
+  //   let state = vec![0;5];
+  //   let message = Vec::new();
+  //   let cihper = Vec::new();
+  //   let mut aegis = Aegis{state,iv:iv,ad:Vec::new(),message,cipher_text:cihper};
+
+  //   let state = aegis.init(key.clone());
+  //   println!("aegis cipher state is {:?} ",state);
+  //   let cipher_text = aegis.enc(plane_text);
+  //   let tag = aegis.finalize();
+  //   println!("aegis cipher tag test {:x?}",tag);
+    
+  //   let ans :u128 = u128::from_str_radix("10b0dee65a97d751205c128a992473a1",16).unwrap();
+  //   let ans_tag = u128::from_str_radix("46dcb9ee93c46cf13731d41b9646c131", 16).unwrap();
+  //   println!("aegis cipher_text test {:x?}",cipher_text);
+  //   println!("aegis ans test {:x?}",ans);
+  //   println!("aegis anstag test {:?}",ans_tag);
+
+
+  //   assert_eq!(ans,cipher_text[0],"aegis cipher test error");
+  //   assert_eq!(ans_tag,tag,"aegis cipher tag test error");
+    
+
+  // }
+
 
 }
