@@ -92,11 +92,6 @@ impl Aegis{
     state[3] = key ^ const0;
     state[4] = key ^ const1;
 
-    //println!("init state is {:x?}",state);
-    // if !self.ad.is_empty() {
-    //   //state = with_ad(state,self.ad.clone());
-    // }
-
     //3.2.2
     for i in 0..5 {
       m.push(key);
@@ -106,8 +101,12 @@ impl Aegis{
     for mi in m{
       state = state_update128(state, mi);
     }
-
     self.state = state.clone();
+    
+    println!("init state is {:x?}",state);
+    if !self.ad.is_empty() {
+      state = self.with_ad();
+    }
     state.clone()
   }
   
@@ -119,6 +118,10 @@ impl Aegis{
     let mut state = self.state.clone();
     let mut cipher_text : Vec<u128> = Vec::new();
 
+
+    if messagelen == 0{
+      return cipher_text;
+    }
     println!("eagis enc state is {:?} ",state);
     for i in 0..messagelen{
       let c = plane[i] ^ state[1] ^ state[4] ^ (state[2] & state[3]);
