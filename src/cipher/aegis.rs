@@ -183,12 +183,18 @@ fn with_ad(&mut self) -> Vec<u128>{
     let mut plane_text = Vec::new();
     let mut state = self.state.clone();
     //3.6.1
-    let v = self.message.len();
-    for i in 0..v-1{
+    let v = cipher.len();
+
+    println!("v is {} , state is {:?}, cipher is {:?}",v,state,cipher);
+    for i in 0..v{
       let plane = cipher[i] ^ state[1] ^ state[4] ^ (state[2] & state[3]);
+      println!("dec plane text is {:?} ",plane);
       plane_text.push(plane.clone());
       state = state_update128(state, plane);
     }
+    //tag
+    let tag = self.finalize();
+    println!("dec tag is {:?}",tag);
     plane_text
   }
 }
@@ -237,6 +243,8 @@ use super::*;
 
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
+
+    let mut dec_aegis = aegis.clone();
     let cipher_text = aegis.enc(plane_text);
     let tag = aegis.finalize();
     println!("aegis cipher tag test {:x?}",tag);
@@ -250,7 +258,10 @@ use super::*;
 
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
     //assert_eq!(ans_tag,tag,"aegis cipher tag test error");
-    
+    dec_aegis.init(key.clone());
+    let p = dec_aegis.dec(cipher_text);
+    println!("aegis cipher test plane text is {:?} ",p);
+
 
   }
 
@@ -277,7 +288,10 @@ use super::*;
 
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
-    let cipher_text = aegis.enc(plane_text);
+
+    
+    let mut dec_aegis = aegis.clone();
+    let cipher_text = aegis.enc(plane_text.clone());
     let tag = aegis.finalize().to_be();
     
     let ans :u128 = u128::from_str_radix("10b0dee65a97d751205c128a992473a1",16).unwrap();
@@ -293,6 +307,10 @@ use super::*;
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
     //assert_eq!(ans_tag,tag,"aegis cipher tag test error");
     
+    let p = dec_aegis.dec(cipher_text);
+    println!("aegis cipher test plane text is {:?} ",p);
+    assert_eq!(plane_text,p,"aegis plane test error ");
+
 
   }
 
