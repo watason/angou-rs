@@ -313,7 +313,7 @@ use super::*;
     
     let mut dec_aegis = aegis.clone();
     let cipher_text = aegis.enc(plane_text.clone());
-    let tag = aegis.finalize().to_be();
+    let tag = aegis.finalize();
     
     let ans :u128 = u128::from_str_radix("10b0dee65a97d751205c128a992473a1",16).unwrap();
     let ans_tag = u128::from_str_radix("46dcb9ee93c46cf13731d41b9646c131", 16).unwrap();
@@ -348,8 +348,9 @@ use super::*;
 u128::from_str_radix("00000000000000000000000000000000",16).unwrap()    ];
     
     let mut ad :Vec<u128> = vec![
-u128::from_str_radix("0001020304050607",16).unwrap()
+u128::from_str_radix("00010203",16).unwrap()
     ];
+    println!("ad test vector is {:x?}",ad);
     let adlen = 32;
     let key : u128 = u128::from_str_radix("00010000000000000000000000000000",16).unwrap();
     let iv :u128 = u128::from_str_radix("00000200000000000000000000000000",16).unwrap();
@@ -357,7 +358,7 @@ u128::from_str_radix("0001020304050607",16).unwrap()
     let message = Vec::new();
     let message_len = 128;
     let cihper = Vec::new();
-    let mut aegis = Aegis{state,iv:iv,ad:ad,adlen,message,messagelen:message_len,cipher_text:cihper};
+    let mut aegis = Aegis{state,iv:iv,ad:ad,adlen,message:message,messagelen:message_len,cipher_text:cihper};
 
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
@@ -411,7 +412,7 @@ u128::from_str_radix("0001020304050607",16).unwrap()
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
     let cipher_text = aegis.enc(plane_text);
-    let tag = aegis.finalize().to_be();
+    let tag = aegis.finalize();
     
     let ans :u128 = u128::from_str_radix("e08ec10685d63c7364eca78ff6e1a1dd",16).unwrap();
     let ans_tag = u128::from_str_radix("27e84b6c4cc46cb6ece8f1f3e4aa0e78", 16).unwrap();
