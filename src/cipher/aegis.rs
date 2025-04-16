@@ -166,8 +166,8 @@ fn with_ad(&mut self) -> Vec<u128>{
 }
   fn finalize(&mut self) ->u128{
     //3.5.1
-    let adlen = u64::from_be_bytes(self.adlen.to_le_bytes());
-    let messagelen = u64::from_be_bytes(self.messagelen.to_le_bytes());
+    let adlen = self.adlen.swap_bytes();
+    let messagelen = self.messagelen.swap_bytes();
     let adlen_be = (adlen as u128) << 64 ;
     let msglen_be = (messagelen as u128);
     let mut state = self.state.clone();
