@@ -65,19 +65,19 @@ fn state_update128(state : Vec<u128>, message : u128) -> Vec<u128>{
 
 
 impl Aegis{
-  // // Fibonacci数列 mod 256の32バイト定数
-  // const FIBONACCI_CONSTANT: [u8; 32] = [
-  //   0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
-  //   0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
-  //   0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
-  //   0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
-  // ];
-  const FIBONACCI_CONSTANT: [u64;4] = [
-    0x0d08050302010100,
-		0x6279e99059372215,
-    0xf12fc26d55183ddb,
-		0xdd28b57342311120 
+  // Fibonacci数列 mod 256の32バイト定数
+  const FIBONACCI_CONSTANT: [u8; 32] = [
+    0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
+    0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
+    0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
+    0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
   ];
+  // const FIBONACCI_CONSTANT: [u64;4] = [
+  //   0x0d08050302010100,
+	// 	0x6279e99059372215,
+  //   0xf12fc26d55183ddb,
+	// 	0xdd28b57342311120 
+  // ];
   fn new() -> Self{
     let state = Vec::new();
     let iv : u128 = 0;
@@ -92,10 +92,10 @@ impl Aegis{
     //3.2.1
     let mut state : Vec<u128> = self.state.clone();
     let mut m : Vec<u128> = Vec::new();
-    //let const0 =u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
-    //let const1 = u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
-    let const0 = ((Aegis::FIBONACCI_CONSTANT[0].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[1].to_be() as u128);
-    let const1 = ((Aegis::FIBONACCI_CONSTANT[2].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[3].to_be() as u128);
+    let const0 =u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
+    let const1 = u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
+    //let const0 = ((Aegis::FIBONACCI_CONSTANT[0].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[1].to_be() as u128);
+    //let const1 = ((Aegis::FIBONACCI_CONSTANT[2].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[3].to_be() as u128);
      
     println!("const0 const1 is {:x?}   {:x?} ",const0,const1);
     state[0] = key ^ self.iv;
