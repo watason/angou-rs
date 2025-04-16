@@ -216,8 +216,7 @@ fn with_ad(&mut self) -> Vec<u128>{
 #[cfg(test)]
 mod test{
   use crate::cipher;
-
-use super::*;
+  use super::*;
 
   #[test]
   fn aesround_test(){
@@ -335,6 +334,16 @@ use super::*;
 
   }
 
+fn vec_u8_to_u128_be(bytes: &[u8]) -> u128 {
+    let mut result: u128 = 0;
+    
+    // ビッグエンディアン形式で変換
+    for &byte in bytes.iter().take(16) {
+        result = (result << 8) | (byte as u128);
+    }
+    
+    result
+}
 //   associated data: 32 bits plaintext: 128 bits
 // K128 = 00010000000000000000000000000000
 // IV128 = 00000200000000000000000000000000
@@ -347,10 +356,15 @@ use super::*;
     let mut plane_text :Vec<u128> = vec![
 u128::from_str_radix("00000000000000000000000000000000",16).unwrap()    ];
     
-    let mut ad :Vec<u128> = vec![
-u128::from_str_radix("00010203",16).unwrap()
-    ];
-    println!("ad test vector is {:x?}",ad);
+    let mut ad :Vec<u128> = vec![u128::from_str_radix("00010203",16).unwrap()];
+    let adtmp =hex::decode("00010203").expect("ad error");
+    let mut adtmp_vec = vec![0u8;16];
+    for (inx,adt) in adtmp.iter().enumerate(){
+      adtmp_vec[inx] = *adt;
+    }
+
+    let adl = vec![vec_u8_to_u128_be(&adtmp_vec)];
+    println!("ad test vector is {:x?} ,and u128 {:x?} ",adtmp_vec,adl);
     let adlen = 32;
     let key : u128 = u128::from_str_radix("00010000000000000000000000000000",16).unwrap();
     let iv :u128 = u128::from_str_radix("00000200000000000000000000000000",16).unwrap();
@@ -358,7 +372,7 @@ u128::from_str_radix("00010203",16).unwrap()
     let message = Vec::new();
     let message_len = 128;
     let cihper = Vec::new();
-    let mut aegis = Aegis{state,iv:iv,ad:ad,adlen,message:message,messagelen:message_len,cipher_text:cihper};
+    let mut aegis = Aegis{state,iv:iv,ad:adl,adlen,message:message,messagelen:message_len,cipher_text:cihper};
 
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
@@ -376,7 +390,7 @@ u128::from_str_radix("00010203",16).unwrap()
     
 
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
-    //assert_eq!(ans_tag,tag,"aegis cipher tag test error");
+    assert_eq!(ans_tag,tag,"aegis cipher tag test error");
     
 
   }
