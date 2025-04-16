@@ -414,6 +414,15 @@ u128::from_str_radix("000102030405060708090a0b0c0d0e0f",16).unwrap(),u128::from_
     let mut ad :Vec<u128> = vec![
 u128::from_str_radix("0001020304050607",16).unwrap()
     ];
+    
+    let adtmp =hex::decode("0001020304050607").expect("ad error");
+    let mut adtmp_vec = vec![0u8;16];
+    for (inx,adt) in adtmp.iter().enumerate(){
+      adtmp_vec[inx] = *adt;
+    }
+
+    let adl = vec![vec_u8_to_u128_be(&adtmp_vec)];
+    println!("ad test vector is {:x?} ,and u128 {:x?} ",adtmp_vec,adl);
     let adlen = 64;
     let key : u128 = u128::from_str_radix("10010000000000000000000000000000",16).unwrap();
     let iv :u128 = u128::from_str_radix("10000200000000000000000000000000",16).unwrap();
@@ -421,7 +430,7 @@ u128::from_str_radix("0001020304050607",16).unwrap()
     let message = Vec::new();
     let message_len = 256;
     let cihper = Vec::new();
-    let mut aegis = Aegis{state,iv:iv,ad:ad,adlen,message,messagelen:message_len,cipher_text:cihper};
+    let mut aegis = Aegis{state,iv:iv,ad:adl,adlen,message,messagelen:message_len,cipher_text:cihper};
 
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
@@ -439,7 +448,7 @@ u128::from_str_radix("0001020304050607",16).unwrap()
     
 
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
-    //assert_eq!(ans_tag,tag,"aegis cipher tag test error");
+    assert_eq!(ans_tag,tag,"aegis cipher tag test error");
     
 
   }
