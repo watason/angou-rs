@@ -6,14 +6,16 @@ use crate::domain::value_object::aes_gf::aesGF;
 use aes_type::*;
 
 #[derive(Debug,Clone)]
-struct Key{
+pub struct Key{
     value : Vec<u32>,
     bit_type : aes_type::BitType,
     mode : aes_type::Mode
 }
 
 impl Key{
-    
+    pub fn new(value : Vec<u32>,bit_type:aes_type::BitType,mode : aes_type::Mode)->Self{
+        Self { value: value, bit_type: bit_type, mode: mode }
+    }
 }
 type Block = u8;
 type Word = [Block;4];
@@ -48,7 +50,7 @@ impl AES{
         let (sbox,inv) = make_sbox();
         Self { sbox: sbox, inv_sbox: inv}
     }
-    fn key_expansion(&self,key : Key)->Vec<u32>{
+    pub fn key_expansion(&self,key : Key)->Vec<u32>{
         let (nk,nr) = key.bit_type.nk_nr();
         let shift_word = |x : u32|x<<8 | x >> 24;
         let sub_word = |x:u32|{
@@ -165,7 +167,7 @@ pub(crate) fn make_sbox() -> ([u8;256],[u8;256]){
     (ret_sbox,ret_inv_sbox)
 }
 
-fn shift_row(blocks : Vec<u8>,inverse : bool) -> Vec<u8>{
+pub fn shift_row(blocks : Vec<u8>,inverse : bool) -> Vec<u8>{
     /*
     forward
      00 04 08 12 => 00 04 08 12
@@ -194,7 +196,7 @@ fn shift_row(blocks : Vec<u8>,inverse : bool) -> Vec<u8>{
 }
 
 
-fn sub_bytes(blocks : Vec<u8>,inverse : bool) ->Vec<u8>{
+pub fn sub_bytes(blocks : Vec<u8>,inverse : bool) ->Vec<u8>{
     let (sbox,inv_sbox) = make_sbox();
     let mut ret = blocks;
     for mut item in ret.iter_mut(){
@@ -207,7 +209,7 @@ fn sub_bytes(blocks : Vec<u8>,inverse : bool) ->Vec<u8>{
     ret
 }
 
-fn mix_column(blocks: Vec<u8>,inverse : bool)->Vec<u8>{
+pub fn mix_column(blocks: Vec<u8>,inverse : bool)->Vec<u8>{
     let blocks = blocks.into_iter().map(|x|aesGF{value:x}).collect::<Vec<aesGF>>();
     let mut ret :[aesGF;16] = [aesGF::default();16];
     for i in 0..4{
@@ -229,7 +231,7 @@ fn mix_column(blocks: Vec<u8>,inverse : bool)->Vec<u8>{
     ret
 }
 
-fn add_round_key(blocks: Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
+pub fn add_round_key(blocks: Vec<u8>,key : Vec<u32>,inverse : bool)->Vec<u8>{
     let mut ret = blocks.clone();
     for i in 0..4{
         let key = key[i].to_be_bytes();
