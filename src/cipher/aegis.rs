@@ -65,19 +65,19 @@ fn state_update128(state : Vec<u128>, message : u128) -> Vec<u128>{
 
 
 impl Aegis{
-  // // Fibonacci数列 mod 256の32バイト定数
-  // const FIBONACCI_CONSTANT: [u8; 32] = [
-  //   0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
-  //   0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
-  //   0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
-  //   0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
-  // ];
-  const FIBONACCI_CONSTANT: [u64;4] = [
-    0x0d08050302010100,
-		0x6279e99059372215,
-    0xf12fc26d55183ddb,
-		0xdd28b57342311120 
+  // Fibonacci数列 mod 256の32バイト定数
+  const FIBONACCI_CONSTANT: [u8; 32] = [
+    0x00, 0x01, 0x01, 0x02, 0x03, 0x05, 0x08, 0x0d,
+    0x15, 0x22, 0x37, 0x59, 0x90, 0xe9, 0x79, 0x62,
+    0xdb, 0x3d, 0x18, 0x55, 0x6d, 0xc2, 0x2f, 0xf1,
+    0x20, 0x11, 0x31, 0x42, 0x73, 0xb5, 0x28, 0xdd
   ];
+  // const FIBONACCI_CONSTANT: [u64;4] = [
+  //   0x0d08050302010100,
+	// 	0x6279e99059372215,
+  //   0xf12fc26d55183ddb,
+	// 	0xdd28b57342311120 
+  // ];
   fn new() -> Self{
     let state = Vec::new();
     let iv : u128 = 0;
@@ -92,10 +92,10 @@ impl Aegis{
     //3.2.1
     let mut state : Vec<u128> = self.state.clone();
     let mut m : Vec<u128> = Vec::new();
-    //let const0 =u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
-    //let const1 = u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
-    let const0 = ((Aegis::FIBONACCI_CONSTANT[0].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[1].to_be() as u128);
-    let const1 = ((Aegis::FIBONACCI_CONSTANT[2].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[3].to_be() as u128);
+    let const0 =u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[0..16].try_into().unwrap());
+    let const1 = u128::from_be_bytes(Aegis::FIBONACCI_CONSTANT[16..32].try_into().unwrap());
+    //let const0 = ((Aegis::FIBONACCI_CONSTANT[0].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[1].to_be() as u128);
+    //let const1 = ((Aegis::FIBONACCI_CONSTANT[2].to_be() as u128) << 64) | (Aegis::FIBONACCI_CONSTANT[3].to_be() as u128);
      
     println!("const0 const1 is {:x?}   {:x?} ",const0,const1);
     state[0] = key ^ self.iv;
@@ -133,7 +133,7 @@ impl Aegis{
     if messagelen == 0{
       return cipher_text;
     }
-    println!("eagis enc state is {:?} ",state);
+    println!("eagis enc first state is {:?} ",state);
     for i in 0..messagelen{
       let c = plane[i] ^ state[1] ^ state[4] ^ (state[2] & state[3]);
 
@@ -145,7 +145,7 @@ impl Aegis{
     self.state = state.clone();
     self.cipher_text = cipher_text.clone();
       
-    println!("eagis enc cipher is {:?} {:x?} ",self.cipher_text,cipher_text);
+    //println!("eagis enc cipher is {:?} {:x?} ",self.cipher_text,cipher_text);
     println!("eagis enc state is {:?} ",self.state);
     
     cipher_text
@@ -166,14 +166,15 @@ fn with_ad(&mut self) -> Vec<u128>{
 }
   fn finalize(&mut self) ->u128{
     //3.5.1
-    let adlen = u64::from_be_bytes(self.adlen.to_le_bytes());
-    let messagelen = u64::from_be_bytes(self.messagelen.to_le_bytes());
+    let adlen = self.adlen.swap_bytes();
+    let messagelen = self.messagelen.swap_bytes();
     let adlen_be = (adlen as u128) << 64 ;
     let msglen_be = (messagelen as u128);
     let mut state = self.state.clone();
 
-    // println!("adlen is {:b} , message len is {:?} , or is {:?}",adlen,msglen_be,adlen_be|msglen_be,);
-    // println!("message == adlenbe|msglen = {:?}",msglen_be==adlen_be|msglen_be);
+    println!("finalize state is {:?}",state);
+    //println!("adlen is {:b} , message len is {:?} , or is {:?}",adlen,msglen_be,adlen_be|msglen_be,);
+    //println!("message == adlenbe|msglen = {:?}",msglen_be==adlen_be|msglen_be);
     let tmp = state[3] ^ (adlen_be | msglen_be);
     //3.5.2
     let tag0 = state.iter().take(5).fold(0,|acc,part|acc ^ part);
@@ -188,22 +189,26 @@ fn with_ad(&mut self) -> Vec<u128>{
     //println!("finalize tag is {:x?} {:?} ",tag,tag);
     tag
   }
-  fn dec(&mut self,cipher : Vec<u128>)-> Vec<u128>{
+  fn dec(&mut self,cipher : Vec<u128>)-> (Vec<u128>,u128){
 
     let mut plane_text = Vec::new();
     let mut state = self.state.clone();
+    println!("aegis dec state is {:?}",state);
     //3.6.1
     let v = cipher.len();
     for i in 0..v{
       let plane = cipher[i] ^ state[1] ^ state[4] ^ (state[2] & state[3]);
-      println!("dec plane text is {:?} ",plane);
+      //println!("dec plane text is {:?} ",plane);
       plane_text.push(plane.clone());
       state = state_update128(state, plane);
+      println!("aegis dec state is {:?},  {:?}",i,state);
     }
     //tag
+    self.state = state.clone();
     let tag = self.finalize();
     println!("dec tag is {:?}",tag);
-    plane_text
+    println!("aegis dec state is {:?}",state);
+    (plane_text,tag)
   }
 }
 #[cfg(test)]
@@ -254,10 +259,10 @@ mod test{
     let cihper = Vec::new();
     let mut aegis = Aegis{state,iv:iv,ad:Vec::new(),adlen:0,message:plane_text.clone(),messagelen:128,cipher_text:cihper};
 
+    let mut dec_aegis = aegis.clone();
     let state = aegis.init(key.clone());
     println!("aegis cipher state is {:?} ",state);
 
-    let mut dec_aegis = aegis.clone();
     let cipher_text = aegis.enc(plane_text);
     let tag = aegis.finalize();
     println!("aegis cipher tag test {:x?}",tag);
@@ -270,10 +275,12 @@ mod test{
     
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
     assert_eq!(ans_tag,tag,"aegis cipher tag test error");
-    dec_aegis.init(key.clone());
-    let p = dec_aegis.dec(cipher_text);
+    let state_dec = dec_aegis.init(key.clone());
+    println!("aegis cipher state_dec is {:?} ",state_dec);
+    let (p,tag1) = dec_aegis.dec(cipher_text);
     println!("aegis cipher test plane text is {:?} ",p);
 
+    assert_eq!(tag,tag1,"aegis cipher ec tag test error");
 
   }
 
@@ -320,10 +327,11 @@ mod test{
     assert_eq!(ans,cipher_text[0],"aegis cipher test error");
     assert_eq!(ans_tag,tag,"aegis cipher tag test error");
     
-    let p = dec_aegis.dec(cipher_text);
+    let (p,tag2) = dec_aegis.dec(cipher_text);
     println!("aegis cipher test plane text is {:?} ",p);
     assert_eq!(plane_text,p,"aegis plane test error ");
 
+    assert_eq!(tag,tag2,"aegis cipher ec tag test error");
 
   }
 
@@ -388,9 +396,11 @@ u128::from_str_radix("00000000000000000000000000000000",16).unwrap()    ];
     assert_eq!(ans_tag,tag,"aegis cipher tag test error");
     
     
-    let p = dec_aegis.dec(cipher_text);
+    let (p,tag3) = dec_aegis.dec(cipher_text);
     println!("aegis cipher test plane text is {:?} ",p);
     assert_eq!(plane_text,p,"aegis plane test error ");
+    
+    assert_eq!(tag,tag3,"aegis cipher dec enc tag test error");
   }
 
 
@@ -451,10 +461,11 @@ u128::from_str_radix("0001020304050607",16).unwrap()
     assert_eq!(ans_tag,tag,"aegis cipher tag test error");
     
     
-    let p = dec_aegis.dec(cipher_text);
+    let (p,tag4) = dec_aegis.dec(cipher_text);
     println!("aegis cipher test plane text is {:?} ",p);
     assert_eq!(plane_text,p,"aegis plane test error ");
 
+    assert_eq!(tag,tag4,"aegis cipher enc dec tag test error");
   }
 
 
